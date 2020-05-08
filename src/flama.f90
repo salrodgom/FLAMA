@@ -58,13 +58,14 @@ module mod_random
     lcg = int(mod(s, int(huge(0), int64)), kind(0))
   end function lcg
  end subroutine init_random_seed
+!
  integer function randint(i,j)
   integer,intent(in)    :: i,j
   real                  :: r
   call random_number(r)
   randint = i + floor((j+1-i)*r)
  end function randint
-! 
+!
  real function r4_uniform(x,y)
   implicit none
   real,intent(in)       :: x,y
@@ -78,9 +79,9 @@ end module mod_random
 module types
  implicit none
  integer,parameter   :: max_atom_number = 1000
- integer,parameter   :: maxnp = 20, maxcompounds = 1, maxdata = 1000
+ integer,parameter   :: maxnp = 10, maxcompounds = 1, maxdata = 1000
  integer,parameter   :: maxlinelength=maxnp*32
- type   CIFfile
+ type   CIFFile
   character(len=100) :: filename
   integer            :: n_atoms
   real               :: rv(1:3,1:3)
@@ -92,12 +93,13 @@ module types
   character(len=2)   :: type_symbol(1:max_atom_number)
   real               :: obs_energy
   real               :: cal_energy
+  real               :: obs_energy_weight
  end type
  type                          :: typ_ga
   character(len=maxlinelength) :: genotype
   real                         :: phenotype(1:maxnp)
   real                         :: fitness
- end type  
+ end type
 end module types
 !
 module GeometricProperties
@@ -175,7 +177,7 @@ module GeometricProperties
     temp(i) = 0.0
     do j = 1,3
       temp(i) = temp(i) + rv(j,i)**2
-    enddo
+    end do
     temp(i) = sqrt(temp(i))
   enddo
   cell_0(1) = abs(temp(1))
@@ -346,6 +348,27 @@ module get_structures
    return
   end subroutine
 !
+  subroutine Recalculate_Energies_and_Weights(n_files, CIFFiles, total_Shift)
+   use types
+   implicit none
+   integer,intent(in)            :: n_files
+   type(CIFfile),intent(inout)   :: CIFFiles(n_files)
+   integer                       :: i
+   real                          :: Z_partition
+   real, intent(out)             :: total_Shift
+   real,parameter                :: kBT = 0.2585184283002 ! (eV)
+   total_Shift = minval(CIFFiles(1:n_files)%obs_energy)
+   do i=1,n_files
+    CIFFiles(i)%obs_energy = CIFFiles(i)%obs_energy - total_Shift
+   end do
+   Z_partition = sum( exp( - CIFFiles(1:n_files)%obs_energy / kBT ) )
+   do i=1,n_files
+    CIFFiles(i)%obs_energy_weight = exp( - CIFFiles(i)%obs_energy / kBT ) / Z_partition
+   end do
+   write(6,'(a,1x,f14.7)')'Weight sum = ',sum( CIFFiles(1:n_files)%obs_energy_weight )
+   return
+  end subroutine
+!
   subroutine ReadCIFFiles(n_files,CIFFiles)
    use types
    use GeometricProperties
@@ -359,7 +382,7 @@ module get_structures
    character(len=100)                :: filename = " "
    character(len=20)                 :: spam
    character(len=80)                 :: string_stop_head= "_atom_site_fract_z"
-   real                              :: infinite = 3.4028e38
+   real                              :: infinite = 3.4028e38, total_Shift
    open(111,file="list",iostat=ierr)
    if(ierr/=0)stop
    do i=1,n_files
@@ -443,6 +466,15 @@ module get_structures
     write(6,*)'Calculated, energy', CIFFiles(i)%cal_energy
    end do
    close(111)
+   call Recalculate_Energies_and_Weights(n_files, CIFFiles, total_Shift)
+   write(6,'(a)') 'Situation:'
+   write(6,'(a)') '================================================================='
+   write(6,'(a,1x,f14.7)') 'Shift:', total_Shift
+   write(6,'(4(a,4x))') 'Obs Energy/ eV','Calc. Energy / eV',' weight / -',' filename'
+   do i=1,n_files
+    write(6,*) CIFFiles(i)%obs_energy, CIFFiles(i)%cal_energy, CIFFiles(i)%obs_energy_weight, &
+               trim(CIFFiles(i)%filename)
+   end do
    !call output_gulp_fit(444,n_files,CIFFiles)
    return
   end subroutine ReadCIFFiles
@@ -645,27 +677,54 @@ module mod_genetic
  public fit
  integer,parameter             :: ga_size         = 800 !2**10 ! numero de cromosomas
  real,parameter                :: ga_mutationrate = 0.3333 !2000/real(ga_size) ! ga_mutationrate=0.333
- real,parameter                :: ga_eliterate= 0.25, GA_DisasterRate = 0.0000001
- integer,parameter             :: ga_elitists = int( ga_size * ga_eliterate)                   
+ real,parameter                :: ga_eliterate= 0.01, GA_DisasterRate = 0.0000001
+ integer,parameter             :: ga_elitists = int( ga_size * ga_eliterate)
  type(typ_ga), pointer         :: parents(:)
  type(typ_ga), pointer         :: children(:)
  type(typ_ga), target          :: pop_alpha( ga_size )
  type(typ_ga), target          :: pop_beta( ga_size )
  contains
+!
  type(typ_ga) function new_citizen(compound,n_files,CIFFiles)
   implicit none
   integer                     :: i,j,k
   integer,intent(in)          :: n_files,compound
   type(CIFFile),intent(inout) :: CIFFiles(n_files)
   real                        :: infinite = 3.4028e38
+  character(len=15)           :: funk = " "
+  ! Initialise variables
   new_citizen%fitness = infinite
   new_citizen%genotype = ' '
-  do i = 1,32*np(compound)
-   new_citizen%genotype(i:i) = achar(randint(48,49))
-  end do
-  do i = 1,np(compound)
-   read(new_citizen%genotype(32*(i-1)+1:32*i),'(b32.32)') new_citizen%phenotype(i)
-  end do
+  ! Initialise in binary and transform to real:
+  !do i = 1,32*np(compound)
+  ! new_citizen%genotype(i:i) = achar(randint(48,49))
+  !end do
+  !do i = 1,np(compound)
+  ! read(new_citizen%genotype(32*(i-1)+1:32*i),'(b32.32)') new_citizen%phenotype(i)
+  !end do
+  ! Initialise in real, in a range, and transform to binary:
+  make_new_values_under_constrains: do i = 1,np(compound)
+   funk = " "
+   phys_constrains_make_values: if ( physical_constrains ) then
+    funk=ajuste(2,i)(1:Clen_trim(ajuste(2,i)))
+    funk=adjustl(funk)
+    select case(funk)
+     case("A_buck")
+      new_citizen%phenotype(i) = r4_uniform( 1e-1 , 1e+6 )
+     case("A_lj")
+      new_citizen%phenotype(i) = r4_uniform( 1e-5, 1e10 )
+     case("epsilon")
+      new_citizen%phenotype(i) = r4_uniform( 0.001, 1.00 )
+     case("sigma")
+      new_citizen%phenotype(i) = r4_uniform( 1.0, 5.5 )
+     case("rho_buck")
+      new_citizen%phenotype(i) = r4_uniform( 1e-3, 0.6 )
+     case("C_buck")
+      new_citizen%phenotype(i) = r4_uniform( 0.0, 1e4 )
+    end select
+   end if phys_constrains_make_values
+   new_citizen%genotype(32*(i-1)+1:32*i)=real2bin( new_citizen%phenotype(i))
+  end do make_new_values_under_constrains
   new_citizen%fitness = fitness( new_citizen%phenotype,compound,n_files,CIFFiles)
   return
  end function new_citizen
@@ -683,6 +742,7 @@ module mod_genetic
   axolotl%fitness = fitness( axolotl%phenotype,compound,n_files,CIFFiles)
   return
  end subroutine UpdateCitizen
+!
  integer*4 function get_file_unit (lu_max)
   integer*4 lu_max,  lu, m, iostat
   logical   opened
@@ -704,22 +764,25 @@ module mod_genetic
   integer             :: i
   call system("cp peros_input.lib peros.lib")
   referw: do i = 1,np(compound)
-   write(line,'(a,a,a,e20.15,a)')"sed -i 's/",trim(ajuste(1,i)(1:Clen_trim(ajuste(1,i)))),"/",phenotype(i),"/g' peros.lib"
-   !write(6,'(a)') line
+   write(line,'(a,a,a,e20.15,a)')"sed -i 's/",&
+    trim(ajuste(1,i)(1:Clen_trim(ajuste(1,i)))),"/",phenotype(i),"/g' peros.lib"
    call system(line)
-  end do referw 
+  end do referw
  end subroutine WriteLib
 !
  real function Fitness(phenotype,compound,n_files,CIFFiles)
+  !use OMP_LIB
   implicit none
   real, intent(in)    :: phenotype(maxnp)
   integer,intent(in)  :: n_files
   type(CIFfile),intent(inout) :: CIFFIles(n_files)
   integer             :: i,j,compound,k = 0, u,ii,np_real
-  real                :: a(0:np(compound)-1),xx,yy,penalty,obs_energy_min,cal_energy_min,obs_energy_max
+  real                :: a(0:np(compound)-1),xx,yy,penalty
+  real                :: obs_energy_min, cal_energy_min, obs_energy_max
   real                :: partition = 0.0
   character(len=100)  :: funk = " ",filename(n_files)
   character(len=200)  :: line
+  character(len=1000) :: script
   logical             :: flagzero = .false.
   real                :: infinite = 3.4028e38
   call system("cp peros_input.lib peros.lib")
@@ -730,7 +793,6 @@ module mod_genetic
    phys_constrains: if ( physical_constrains ) then
     funk=ajuste(2,i)(1:Clen_trim(ajuste(2,i)))
     funk=adjustl(funk)
-    !write(6,*) funk,phenotype(i)
     select case(funk)
      case("A_buck")
       if (phenotype(i)<=1e-2.or.isnan(phenotype(i)).or.phenotype(i)>=1e10)then
@@ -758,7 +820,7 @@ module mod_genetic
        exit refer
       end if
      case("C_buck")
-      if(phenotype(i)<0.0.or.phenotype(i)>1e7.or.isnan(phenotype(i)))then 
+      if(phenotype(i)<0.0.or.phenotype(i)>1e7.or.isnan(phenotype(i)))then
        penalty=infinite
        exit refer
       end if
@@ -771,71 +833,81 @@ module mod_genetic
    end if phys_constrains
    write(line,'(a,a,a,e20.15,a)')&
     "sed -i 's/",trim(ajuste(1,i)(1:Clen_trim(ajuste(1,i)))),"/",phenotype(i),"/g' peros.lib"
-    !write(6,'(a)') line
    call system(line)
   end do refer
+  ! Interface with GULP code
   calgulp: if ( penalty < 1.0 ) then
-  ii=0
-  scan_: do
-   ii=ii+1
-   i=ii
-   if(i .le. n_files)then
-    u=get_file_unit(444)
-    call output_gulp(u,CIFFiles(i),filename(i))
-    write(line,*)"~/bin/gulp < ",filename(i)(1:Clen_trim(filename(i)))," > ",&
-     filename(i)(1:Clen_trim(filename(i))),".gout "
-   ! write(6,'(a)')line
-    call system(line)
-    write(line,*)"grep 'Total lattice energy       =' ",filename(i)(1:Clen_trim(filename(i))),&
-     ".gout | grep 'eV' | awk '{print $5}' > ",filename(i)(1:Clen_trim(filename(i))),".tmp "
-    !write(6,'(a)')line
-    call system(line)
-    write(line,*)"grep 'ERROR' ",filename(i)(1:Clen_trim(filename(i))),&
-     ".gout | wc -l | awk '{print $1}' >> ",filename(i)(1:Clen_trim(filename(i))),".tmp "
-    !write(6,'(a)')line
-    call system(line)
-    u=get_file_unit(444)
-    open(u,file=filename(i)(1:Clen_trim(filename(i)))//".tmp")
-    read(u,'(a)')line
-    if(line(1:20)=="********************")then
-     CIFFiles(i)%cal_energy=infinite
-     !write(6,*)   CIFFiles(i)%filename,'(',(phenotype(j),j=1,np(compound)),')'
-     !write(6,*)   CIFFiles(i)%cal_energy,CIFFiles(i)%obs_energy
-     !STOP
-    else
-     read(line,*) CIFFiles(i)%cal_energy
-     !write(6,*)   CIFFiles(i)%filename,'(',(phenotype(j),j=1,np(compound)),')'
-     !write(6,*)   CIFFiles(i)%cal_energy,CIFFiles(i)%obs_energy
-    end if
-    read(u,*) j
-    if (j>0) then
-     CIFFiles(i)%cal_energy=infinite
-     write(6,*)'There are errors in output', j
-     stop '#'
-    end if
-    close(u)
-    end if
-   if(i.gt.n_files) exit
-  end do scan_
-  obs_energy_min=minval(CIFFiles%obs_energy)
-  partition=sum(exp(-CIFFiles(1:n_files)%obs_energy/10.0/obs_energy_min))
-  cal_energy_min=minval(CIFFiles%cal_energy)
-  do i=1,n_files
-   fitness = fitness + &
-    0.5*abs(CIFFiles(i)%obs_energy-obs_energy_min-(CIFFiles(i)%cal_energy-cal_energy_min))**2
-  end do
-  !fitness=fitness/real(n_files)
+   !ii=0
+   ! Sería interesante paralelizar aqui:
+!$omp parallel private (ii,i)
+!$omp do
+   scan_: do ii=0,n_files
+    !ii=ii+1
+    !i=ii
+    !if(i <= n_files)then
+     u=get_file_unit(444)
+     call output_gulp(u,CIFFiles(i),filename(i))
+     ! script in system:
+     !write(line,*)"~/bin/gulp < ",filename(i)(1:Clen_trim(filename(i)))," > ",&
+     ! filename(i)(1:Clen_trim(filename(i))),".gout "
+     !call system(line)
+     !write(line,*)"grep 'Total lattice energy       =' ",filename(i)(1:Clen_trim(filename(i))),&
+     ! ".gout | grep 'eV' | awk '{print $5}' > ",filename(i)(1:Clen_trim(filename(i))),".tmp "
+     !call system(line)
+     !write(line,*)"grep 'ERROR' ",filename(i)(1:Clen_trim(filename(i))),&
+     ! ".gout | wc -l | awk '{print $1}' >> ",filename(i)(1:Clen_trim(filename(i))),".tmp "
+     !call system(line)
+     ! here we interact with GULP using the call system, very expensive in call mem
+     write(script,'(a,a,a,a,a,a,a,a,a,a,a,a,a,a,a)')"~/bin/gulp < ",&
+      filename(i)(1:Clen_trim(filename(i)))," > ",filename(i)(1:Clen_trim(filename(i))),".gout ; ",&
+      "grep 'Total lattice energy       =' ",filename(i)(1:Clen_trim(filename(i))),&
+      ".gout | grep 'eV' | awk '{print $5}' > ",filename(i)(1:Clen_trim(filename(i))),".tmp ;",&
+      "grep 'ERROR' ",filename(i)(1:Clen_trim(filename(i))),&
+      ".gout | wc -l | awk '{print $1}' >> ",filename(i)(1:Clen_trim(filename(i))),".tmp "
+     call system(script)
+     !
+     u=get_file_unit(444)
+     open(u,file=filename(i)(1:Clen_trim(filename(i)))//".tmp")
+     read(u,'(a)')line
+     if(line(1:20)=="********************")then
+      CIFFiles(i)%cal_energy=infinite
+      !write(6,*) CIFFiles(i)%filename,'(',(phenotype(j),j=1,np(compound)),')'
+      !write(6,*) CIFFiles(i)%cal_energy,CIFFiles(i)%obs_energy
+      !STOP
+     else
+      read(line,*) CIFFiles(i)%cal_energy
+      !write(6,*) CIFFiles(i)%filename,'(',(phenotype(j),j=1,np(compound)),')'
+      !write(6,*) CIFFiles(i)%cal_energy,CIFFiles(i)%obs_energy
+     end if
+     read(u,*) j
+     if (j>0) then
+      CIFFiles(i)%cal_energy=infinite
+      write(6,*)'There are errors in output', j
+      stop '#'
+     end if
+     close(u)
+     !end if
+    !if(i.gt.n_files) exit
+   end do scan_
+!$omp end do
+!$omp end parallel
+   obs_energy_min=minval(CIFFiles%obs_energy)
+   cal_energy_min=minval(CIFFiles%cal_energy)
+   do i=1,n_files
+    fitness = fitness + &
+    0.5*CIFFiles(i)%obs_energy_weight*abs(CIFFiles(i)%obs_energy-(CIFFiles(i)%cal_energy-cal_energy_min))**2
+   end do
   else
    fitness = fitness + penalty
   end if calgulp
   !write(6,*)'Rosenbluth:',(exp(-CIFFiles(j)%obs_energy/(10*obs_energy_min))/partition, j=1,n_files)
   !write(6,*)'Suma:',sum( exp(-CIFFiles(1:n_files)%obs_energy/10.0/obs_energy_min)/partition )
-  !call system("rm if [ $(echo '$(ls *.tmp  | wc -l) > 0' | bc -l) == 1 ] ; then rm -rf *.tmp  ; fi")
-  !call system("rm if [ $(echo '$(ls *.gout | wc -l) > 0' | bc -l) == 1 ] ; then rm -rf *.gout ; fi")
+  call system("rm -rf *.tmp *.gout")
   return
  end function Fitness
 
  subroutine WriteCitizen(k,kk,kkk,compound,lod,vgh)
+  ! call WriteCitizen(1,1,1,compound,1,1)
   implicit none
   integer,intent(in)             :: k,kk,compound,lod,vgh,kkk
   integer                        :: i
@@ -899,7 +971,29 @@ module mod_genetic
   parents=sorted
   return
  end subroutine SortByFitness
-
+!
+! character(len=32) Real_To_IEEE32( a )
+!  implicit none
+!  real, intent(in) :: a
+!  integer          :: i, j
+!  character(len=4) :: s
+!  open(unit=8,file=".tmp",action="write",status="unknown",form="unformatted")
+!  write(unit=8) a
+!  close(unit=8)
+!  open(unit=8,file=".tmp",action="read",status="old",form="unformatted")
+!  read(unit=8) s
+!  write(Real_To_IEEE32(1:32),"(32I1)")  &
+!   (/ ( (modulo(ichar(s(i:i)) / 2**j, 2), j=7,0,-1), i=4,1,-1 ) /)
+!  return
+! end function Real_To_IEEE32
+!
+ pure character(len=32) function real2bin(x)
+  implicit none
+  real,intent(in) :: x
+  write(real2bin(1:32) ,'(b32.32)') x
+  return
+ end function real2bin
+!
  integer function Biodiversity( compound, animalito)
   implicit none
   integer,intent(in)             :: Compound
@@ -917,7 +1011,7 @@ module mod_genetic
     Biodiversity = 0
     suma=0.5*ga_size*ga_size-ga_size
     do k =1,ga_size
-     do j=k+1,ga_size 
+     do j=k+1,ga_size
       !suma = suma + 1
       if( animalito(k)%genotype(1:32*np(Compound)) == animalito(j)%genotype(1:32*np(Compound)) )then
        Biodiversity = Biodiversity + 1
@@ -1073,7 +1167,8 @@ module mod_genetic
   integer,parameter           :: maxstep = 100, minstep = 10
   integer                     :: kk, ii, i, j, k,vgh
   real                        :: diff = 0.0, fit0 = 0.0
-  integer                     :: eps 
+  integer                     :: eps
+  character(len=100)          :: string
   write(6,'(a)')'Initialising GA:'
   write(6,'(i5,1x,a,1x,i5,1x,a,f14.7,1x,a)')ga_size,'(elites:',int(ga_eliterate*ga_size),'mutate:',ga_mutationrate,')'
   write(6,'(a)')'[...]'
@@ -1082,16 +1177,20 @@ module mod_genetic
     write(6,'(a,1x,i4)')'Initial input',i
     pop_alpha(i)%genotype=string_IEEE(i)
     call UpdateCitizen(pop_alpha(i),compound,n_files,CIFFiles)
-    write(6,'(a,a,a)') '> genotype: [',  pop_alpha(i)%genotype,']'
+    write(string,'("(a13, ", i4, "a, a1)" )') 32*np(Compound)
+    write(6,string) '> genotype: [',pop_alpha(i)%genotype(1:32*np(Compound)),']'
     write(6,'(a,10(f14.7,1x))') '> phenotype: ',( pop_alpha(i)%phenotype(j), j=1,np(compound) )
+    write(6,'(a)')'--------------------------'
    end do
    finish_make: do i=n_refits+1,ga_size
     if(i>ga_size) exit finish_make
-    write(6,'(a,1x,i4)') 'Initial input',i
-    pop_alpha(i) = new_citizen(compound,n_files,CIFFiles) 
+    write(6,'(a,1x,i4)') 'Initial input (random generation)',i
+    pop_alpha(i) = new_citizen(compound,n_files,CIFFiles)
     call UpdateCitizen(pop_alpha(i),compound,n_files,CIFFiles)
-    write(6,'(a,a,a)') '> genotype: [',  pop_alpha(i)%genotype,']'
+    write(string,'("(a13, ", i4, "a, a1)" )') 32*np(Compound)
+    write(6,string) '> genotype: [',pop_alpha(i)%genotype(1:32*np(Compound)),']'
     write(6,'(a,10(f14.7,1x))') '> phenotype:',( pop_alpha(i)%phenotype(j), j=1,np(compound) )
+    write(6,'(a)')'--------------------------'
    end do finish_make
    write(6,'(a)')'[...]'
    parents =>  pop_alpha
@@ -1490,5 +1589,5 @@ program fitter
   call fit(1,n_files,CIFFiles)
   !call fit_simplex()
  end if
- call WriteEnergies(n_files,CIFFiles,"end") 
+ call WriteEnergies(n_files,CIFFiles,"end")
 end program fitter
