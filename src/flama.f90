@@ -780,7 +780,7 @@ end function get_file_unit
   real, intent(in)    :: phenotype(maxnp)
   integer,intent(in)  :: n_files
   type(CIFfile),intent(inout) :: CIFFIles(n_files)
-  integer             :: i,j,jjj,compound,k = 0, u,ii,np_real
+  integer             :: i, j, jjj,compound,k = 0, u,ii,np_real
   real                :: a(0:np(compound)-1),xx,yy,penalty
   real                :: obs_energy_min, cal_energy_min, obs_energy_max
   real                :: partition = 0.0
@@ -868,12 +868,12 @@ end function get_file_unit
     else
      read(line,*) CIFFiles(i)%cal_energy
     end if
-    read(u,*) jjj
-    if (jjj>0) then
-     CIFFiles(i)%cal_energy = infinite
-     write(6,*)'There are errors in output', jjj
-     stop '#'
-    end if
+    !read(u,*) jjj
+    !if (jjj>0) then
+    ! CIFFiles(i)%cal_energy = infinite
+    ! write(6,*)'There are errors in output', jjj
+    ! stop '#'
+    !end if
     close(u)
     write(6,*) "file:", i, CIFFiles(i)%filename, OMP_GET_THREAD_NUM(), u, CIFFiles(i)%cal_energy
     !!!$omp end critical
