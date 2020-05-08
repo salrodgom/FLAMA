@@ -105,7 +105,7 @@ end module types
 module GeometricProperties
  implicit none
  private
- public cell,uncell,output_gulp,output_gulp_fit,Clen,Clen_trim
+ public cell,uncell,output_gulp,Clen,Clen_trim ! output_gulp_fit
  contains
  PURE INTEGER FUNCTION Clen(s)      ! returns same result as LEN unless:
  CHARACTER(*),INTENT(IN) :: s       ! last non-blank char is null
@@ -254,20 +254,21 @@ module GeometricProperties
  end do
  RETURN
  END SUBROUTINE inverse
- subroutine output_gulp(u,CIFFiles,GULPFilename)
+!
+ subroutine output_gulp(CIFFiles,GULPFilename)
   use types
   implicit none
-  type(CIFfile),intent(inout)       :: CIFFiles
-  character(len=100),intent(out)    :: GULPFilename
-  integer,intent(in)                :: u
-  integer                           :: i,k
-  real               :: mmm,rrr
-  integer            :: zzz
-  character(len=2)   :: zlz
-  character(len=4)   :: extension=".gin"
+  type(CIFfile),intent(inout)     :: CIFFiles
+  character(len=100),intent(out)  :: GULPFilename
+  integer                         :: u
+  integer                         :: i,k
+  real                            :: mmm,rrr
+  integer                         :: zzz
+  character(len=2)                :: zlz
+  character(len=4)                :: extension=".gin"
   GULPFilename=CIFFiles%filename(1:Clen_trim(CIFFiles%filename))//extension
   GULPFilename=adjustl(GULPfilename)
-  open(u,file=GULPFilename)
+  open(newunit=u,file=GULPFilename)
   write(u,'(a)')'single conv molecule'
   write(u,'(A)')'cell'
   write(u,'(6(f9.5,1x))') (CIFFiles%cell_0(i) , i=1,6)
@@ -280,40 +281,42 @@ module GeometricProperties
   write(u,'(A)')'library peros'
   close(u)
  end subroutine output_gulp
- subroutine output_gulp_fit(u,n_files,CIFFiles)
-  use types
-  implicit none
-  integer,intent(in)                :: u,n_files
-  type(CIFfile),intent(inout)       :: CIFFiles(n_files)
-  character(len=100)                :: GULPFilename="fit.gin"
-  integer                           :: i,j,k
-  real               :: mmm,rrr,obs_energy_min
-  integer            :: zzz
-  character(len=2)   :: zlz
-  obs_energy_min=minval(CIFFiles%obs_energy)
-  open(u,file=GULPFilename)
-  write(u,'(a)')'fit conv molecule'
-  do i=1,n_files
-   write(u,'(A)')'cell'
-   write(u,'(6(f9.5,1x))') (CIFFiles(i)%cell_0(k) , k=1,6)
-   write(u,'(A)')'fractional'
-   do j=1,CIFFiles(i)%n_atoms
-    write(u,'(a4,1x,3(f14.7,1x),1x,f14.7)')CIFFiles(i)%atom_label(j),&
-    (CIFFiles(i)%atom_xcrystal(k,j),k=1,3),CIFFiles(i)%atom_charge(j)
-   end do
-   write(u,'(a)')'supercell 1 1 1'
-   write(u,'(a)')'observable'
-   write(u,*)'energy eV'
-   write(u,*)CIFFiles(i)%obs_energy - obs_energy_min, 100.0
-   write(u,*)'end'
-  end do
-  !# Tell the program to fit the overall shift
-  write(u,'(A)')'vary'
-  write(u,'(A)')' shift'
-  write(u,'(A)')'end'
-  write(u,'(A)')'library peros'
-  close(u)
- end subroutine output_gulp_fit
+!
+! subroutine output_gulp_fit(n_files,CIFFiles)
+!  use types
+!  implicit none
+!  integer,intent(in)            :: n_files
+!  integer                       :: u = 444
+!  type(CIFfile),intent(inout)   :: CIFFiles(n_files)
+!  character(len=100)            :: GULPFilename="fit.gin"
+!  integer                       :: i, j, k
+!  real                          :: mmm,rrr,obs_energy_min
+!  integer                       :: zzz
+!  character(len=2)              :: zlz
+!  obs_energy_min=minval(CIFFiles%obs_energy)
+!  open(newunit = u, file = GULPFilename)
+!  write(u,'(a)')'fit conv molecule'
+!  do i=1,n_files
+!   write(u,'(A)')'cell'
+!   write(u,'(6(f9.5,1x))') (CIFFiles(i)%cell_0(k) , k=1,6)
+!   write(u,'(A)')'fractional'
+!   do j=1,CIFFiles(i)%n_atoms
+!    write(u,'(a4,1x,3(f14.7,1x),1x,f14.7)')CIFFiles(i)%atom_label(j),&
+!    (CIFFiles(i)%atom_xcrystal(k,j),k=1,3),CIFFiles(i)%atom_charge(j)
+!   end do
+!   write(u,'(a)')'supercell 1 1 1'
+!   write(u,'(a)')'observable'
+!   write(u,*)'energy eV'
+!   write(u,*)CIFFiles(i)%obs_energy - obs_energy_min, 100.0
+!   write(u,*)'end'
+!  end do
+!  !# Tell the program to fit the overall shift
+!  write(u,'(A)')'vary'
+!  write(u,'(A)')' shift'
+!  write(u,'(A)')'end'
+!  write(u,'(A)')'library peros'
+!  close(u)
+! end subroutine output_gulp_fit
 end module GeometricProperties
 !
 module get_structures
@@ -447,7 +450,7 @@ module get_structures
      write(6,'(a2,1x,3(f14.7,1x))')CIFFiles(i)%type_symbol(j),(CIFFiles(i)%atom_xcrystal(k,j),k=1,3)
     end do
     close(100)
-    call output_gulp(444,CIFFiles(i),filename )
+    call output_gulp(CIFFiles(i),filename )
     write(6,*)'GULP file:',filename
     line="~/bin/gulp < "//filename(1:50)//" > tmp "
     call system(line)
@@ -744,8 +747,9 @@ module mod_genetic
  end subroutine UpdateCitizen
 !
  integer*4 function get_file_unit (lu_max)
-  integer*4 lu_max,  lu, m, iostat
-  logical   opened
+! get_file_unit returns a unit number that is not in use
+  integer*4  :: lu_max, lu, m, iostat
+  logical    :: opened
   m = lu_max  ;  if (m < 1) m = 97
   do lu = m,1,-1
    inquire (unit=lu, opened=opened, iostat=iostat)
@@ -754,7 +758,7 @@ module mod_genetic
   end do
   get_file_unit = lu
   return
- end function get_file_unit
+end function get_file_unit
 !
  subroutine WriteLib(compound,phenotype)
   implicit none
@@ -771,12 +775,12 @@ module mod_genetic
  end subroutine WriteLib
 !
  real function Fitness(phenotype,compound,n_files,CIFFiles)
-  !use OMP_LIB
+  use OMP_LIB
   implicit none
   real, intent(in)    :: phenotype(maxnp)
   integer,intent(in)  :: n_files
   type(CIFfile),intent(inout) :: CIFFIles(n_files)
-  integer             :: i,j,compound,k = 0, u,ii,np_real
+  integer             :: i,j,jjj,compound,k = 0, u,ii,np_real
   real                :: a(0:np(compound)-1),xx,yy,penalty
   real                :: obs_energy_min, cal_energy_min, obs_energy_max
   real                :: partition = 0.0
@@ -788,6 +792,7 @@ module mod_genetic
   call system("cp peros_input.lib peros.lib")
   penalty=0.0
   fitness = 0.0
+  ! For each parameter, we add a penalty if the parameter is out of range
   refer: do i = 1,np(compound)
    funk = " "
    phys_constrains: if ( physical_constrains ) then
@@ -835,62 +840,47 @@ module mod_genetic
     "sed -i 's/",trim(ajuste(1,i)(1:Clen_trim(ajuste(1,i)))),"/",phenotype(i),"/g' peros.lib"
    call system(line)
   end do refer
+  ! We proced with the GULP interface, in order to calculate the fitness:
   ! Interface with GULP code
   calgulp: if ( penalty < 1.0 ) then
-   !ii=0
    ! Sería interesante paralelizar aqui:
-!$omp parallel private (ii,i)
+!$omp parallel default(private) shared(n_files, CIFFiles, filename)
 !$omp do
-   scan_: do ii=0,n_files
-    !ii=ii+1
-    !i=ii
-    !if(i <= n_files)then
-     u=get_file_unit(444)
-     call output_gulp(u,CIFFiles(i),filename(i))
-     ! script in system:
-     !write(line,*)"~/bin/gulp < ",filename(i)(1:Clen_trim(filename(i)))," > ",&
-     ! filename(i)(1:Clen_trim(filename(i))),".gout "
-     !call system(line)
-     !write(line,*)"grep 'Total lattice energy       =' ",filename(i)(1:Clen_trim(filename(i))),&
-     ! ".gout | grep 'eV' | awk '{print $5}' > ",filename(i)(1:Clen_trim(filename(i))),".tmp "
-     !call system(line)
-     !write(line,*)"grep 'ERROR' ",filename(i)(1:Clen_trim(filename(i))),&
-     ! ".gout | wc -l | awk '{print $1}' >> ",filename(i)(1:Clen_trim(filename(i))),".tmp "
-     !call system(line)
-     ! here we interact with GULP using the call system, very expensive in call mem
-     write(script,'(a,a,a,a,a,a,a,a,a,a,a,a,a,a,a)')"~/bin/gulp < ",&
-      filename(i)(1:Clen_trim(filename(i)))," > ",filename(i)(1:Clen_trim(filename(i))),".gout ; ",&
-      "grep 'Total lattice energy       =' ",filename(i)(1:Clen_trim(filename(i))),&
-      ".gout | grep 'eV' | awk '{print $5}' > ",filename(i)(1:Clen_trim(filename(i))),".tmp ;",&
-      "grep 'ERROR' ",filename(i)(1:Clen_trim(filename(i))),&
-      ".gout | wc -l | awk '{print $1}' >> ",filename(i)(1:Clen_trim(filename(i))),".tmp "
-     call system(script)
-     !
-     u=get_file_unit(444)
-     open(u,file=filename(i)(1:Clen_trim(filename(i)))//".tmp")
-     read(u,'(a)')line
-     if(line(1:20)=="********************")then
-      CIFFiles(i)%cal_energy=infinite
-      !write(6,*) CIFFiles(i)%filename,'(',(phenotype(j),j=1,np(compound)),')'
-      !write(6,*) CIFFiles(i)%cal_energy,CIFFiles(i)%obs_energy
-      !STOP
-     else
-      read(line,*) CIFFiles(i)%cal_energy
-      !write(6,*) CIFFiles(i)%filename,'(',(phenotype(j),j=1,np(compound)),')'
-      !write(6,*) CIFFiles(i)%cal_energy,CIFFiles(i)%obs_energy
-     end if
-     read(u,*) j
-     if (j>0) then
-      CIFFiles(i)%cal_energy=infinite
-      write(6,*)'There are errors in output', j
-      stop '#'
-     end if
-     close(u)
-     !end if
-    !if(i.gt.n_files) exit
+   scan_: do i=1,n_files
+    ! get a free unit for read/write for each CPU
+    !u = get_file_unit(444)
+    !!!!$omp critical
+    call output_gulp(CIFFiles(i),filename(i))
+    ! here we interact with GULP using the call system, very expensive in call mem
+    write(script,'(a,a,a,a,a,a,a,a,a,a,a,a,a,a,a)')"~/bin/gulp < ",&
+     filename(i)(1:Clen_trim(filename(i)))," > ",filename(i)(1:Clen_trim(filename(i))),".gout ; ",&
+     "grep 'Total lattice energy       =' ",filename(i)(1:Clen_trim(filename(i))),&
+     ".gout | grep 'eV' | awk '{print $5}' > ",filename(i)(1:Clen_trim(filename(i))),".tmp ;",&
+     "grep 'ERROR' ",filename(i)(1:Clen_trim(filename(i))),&
+     ".gout | wc -l | awk '{print $1}' >> ",filename(i)(1:Clen_trim(filename(i))),".tmp "
+    call system(script)
+    !
+    !u=get_file_unit(444)
+    open(newunit = u,file=filename(i)(1:Clen_trim(filename(i)))//".tmp")
+    read(u,'(a)')line
+    if(line(1:20)=="********************")then
+     CIFFiles(i)%cal_energy=infinite
+    else
+     read(line,*) CIFFiles(i)%cal_energy
+    end if
+    read(u,*) jjj
+    if (jjj>0) then
+     CIFFiles(i)%cal_energy = infinite
+     write(6,*)'There are errors in output', jjj
+     stop '#'
+    end if
+    close(u)
+    write(6,*) "file:", i, CIFFiles(i)%filename, OMP_GET_THREAD_NUM(), u, CIFFiles(i)%cal_energy
+    !!!$omp end critical
    end do scan_
 !$omp end do
 !$omp end parallel
+!$omp barrier
    obs_energy_min=minval(CIFFiles%obs_energy)
    cal_energy_min=minval(CIFFiles%cal_energy)
    do i=1,n_files
