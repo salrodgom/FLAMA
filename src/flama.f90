@@ -94,6 +94,7 @@ module types
   real               :: obs_energy
   real               :: cal_energy
   real               :: obs_energy_weight
+  !integer            :: composition        ! 0,1,2,3, etc. (not implemented yet)
  end type
  type                          :: typ_ga
   character(len=maxlinelength) :: genotype
@@ -440,7 +441,7 @@ module get_structures
     write(6,'(3(f14.7,1x))') ( CIFFiles(i)%rv(3,j), j=1,3 )
     do
      read(100,'(a)') line
-     if(line(1:)==string_stop_head) exit
+     if (line(1:)==string_stop_head) exit
     end do
     do j=1,CIFFiles(i)%n_atoms
      read(100,'(a)') line
@@ -516,15 +517,17 @@ module qsort_c_module
  public  :: QsortC
  private :: Partition
  contains
+!
  recursive subroutine QsortC(A)
   real(16), intent(in out), dimension(:) :: A
-  integer                            :: iq
+  integer                                :: iq
   if(size(A) > 1) then
-     call Partition(A, iq)
-     call QsortC(A(:iq-1))
-     call QsortC(A(iq:))
+   call Partition(A, iq)
+   call QsortC(A(:iq-1))
+   call QsortC(A(iq:))
   endif
  end subroutine QsortC
+!
  subroutine Partition(A, marker)
   real(16), intent(in out), dimension(:) :: A
   integer, intent(out)               :: marker
@@ -532,35 +535,36 @@ module qsort_c_module
   real(16)                           :: temp
   real(16)                           :: x
   x = A(1)
-  i= 0
-  j= size(A) + 1
+  i = 0
+  j = size(A) + 1
   do
-     j = j-1
-     do
-        if (A(j) <= x) exit
-        j = j-1
-     end do
-     i = i+1
-     do
-        if (A(i) >= x) exit
-        i = i+1
-     end do
-     if (i < j) then
-        temp = A(i)
-        A(i) = A(j)
-        A(j) = temp
-     elseif (i == j) then
-        marker = i+1
-        return
-     else
-        marker = i
-        return
-     endif
+   j = j-1
+   do
+    if (A(j) <= x) exit
+    j = j-1
+   end do
+   i=i+1
+   do
+    if (A(i) >= x) exit
+    i=i+1
+   end do
+   if (i < j) then
+    temp = A(i)
+    A(i) = A(j)
+    A(j) = temp
+   elseif (i == j) then
+    marker = i+1
+    return
+   else
+    marker = i
+    return
+   endif
   end do
  end subroutine Partition
+!
 end module qsort_c_module
 !
-module fitter_globals
+module flama_globals
  use types
  use mod_random
  use get_structures
@@ -568,12 +572,7 @@ module fitter_globals
  integer                    :: npar,i
  integer,allocatable        :: np(:)
  integer                    :: err_apertura,ii,intervalos,j,n_refits
- !integer,parameter          :: integration_points = 10000
- !real,parameter             :: precision_Newton = 1e-5
- !real                       :: tol = 0.001, tolfire = 0.25
  real,allocatable           :: param(:,:)
- !,concy(:),pi(:,:),iso(:,:)
- !integer,allocatable        :: npress(:)
  real,target                :: datas(2,maxcompounds,maxdata),f(maxdata)
  real,pointer               :: x(:),y(:),alldat(:,:)
  character(15),allocatable  :: ajuste(:,:)
@@ -585,8 +584,6 @@ module fitter_globals
  logical                    :: refit_flag = .false., flag_shift=.false.
  real,parameter             :: R = 0.008314472 ! kJ / mol / K
  real                       :: T = 298.0
- !real                       :: inferior
- !real                       :: superior
  contains
   subroutine read_input()
   implicit none
@@ -644,10 +641,6 @@ module fitter_globals
      string_IEEE(i) = ' '
     end if
    end if
-   !if(line(1:5)=='RSeed') then
-   ! seed_flag=.false.
-   ! read(line,*)inpt, seed
-   !end if
    if(line(1:22)=='physically_constrained') then
     physical_constrains=.true.
     write(6,'(a)') '[WARN] The fits are physically constrained'
@@ -667,12 +660,12 @@ module fitter_globals
    write(6,'(2f20.5)') datas(1,1,i),datas(2,1,i)
   end do
  end subroutine ReadObservables
-end module fitter_globals
+end module flama_globals
 !
 module mod_genetic
  use types
  use mod_random
- use fitter_globals
+ use flama_globals
  use qsort_c_module
  use get_structures
  use GeometricProperties
@@ -844,12 +837,12 @@ end function get_file_unit
   ! We proced with the GULP interface, in order to calculate the fitness:
   ! Interface with GULP code
   calgulp: if ( penalty < 1.0 ) then
-   ! Sería interesante paralelizar aqui:
 !$omp parallel default(private) shared(n_files, CIFFiles, filename)
 !$omp do
    scan_: do i=1,n_files
     ! get a free unit for read/write for each CPU
     !u = get_file_unit(444)
+    ! the functionality newunit is for Fortran 2008:
     !!!!$omp critical
     call output_gulp(CIFFiles(i),filename(i))
     ! here we interact with GULP using the call system, very expensive in call mem
@@ -860,8 +853,6 @@ end function get_file_unit
      "grep 'ERROR' ",filename(i)(1:Clen_trim(filename(i))),&
      ".gout | wc -l | awk '{print $1}' >> ",filename(i)(1:Clen_trim(filename(i))),".tmp "
     call system(script)
-    !
-    !u=get_file_unit(444)
     open(newunit = u,file=filename(i)(1:Clen_trim(filename(i)))//".tmp")
     read(u,'(a)')line
     if(line(1:20)=="********************")then
@@ -869,6 +860,7 @@ end function get_file_unit
     else
      read(line,*) CIFFiles(i)%cal_energy
     end if
+    ! CHECK: PROBLEMS IN PARALELL
     !read(u,*) jjj
     !if (jjj>0) then
     ! CIFFiles(i)%cal_energy = infinite
@@ -876,8 +868,8 @@ end function get_file_unit
     ! stop '#'
     !end if
     close(u)
+    ! debug:
     !write(6,*) "file:", i, CIFFiles(i)%filename, OMP_GET_THREAD_NUM(), u, CIFFiles(i)%cal_energy
-    !!!$omp end critical
    end do scan_
 !$omp end do
 !$omp end parallel
@@ -1160,27 +1152,29 @@ end function get_file_unit
   real                        :: diff = 0.0, fit0 = 0.0
   integer                     :: eps
   character(len=100)          :: string
-  write(6,'(a)')'Initialising GA:'
+  write(6,'(a)')'Initialising GA World:'
   write(6,'(i5,1x,a,1x,i5,1x,a,f14.7,1x,a)')ga_size,'(elites:',int(ga_eliterate*ga_size),'mutate:',ga_mutationrate,')'
   write(6,'(a)')'[...]'
   if ( refit_flag ) then
    do i=1,n_refits
-    write(6,'(a,1x,i4)')'Initial input',i
+    write(6,'(a,1x,i4)')'Initial Agent from input file',i
     pop_alpha(i)%genotype=string_IEEE(i)
     call UpdateCitizen(pop_alpha(i),compound,n_files,CIFFiles)
     write(string,'("(a13, ", i4, "a, a1)" )') 32*np(Compound)
     write(6,string) '> genotype: [',pop_alpha(i)%genotype(1:32*np(Compound)),']'
     write(6,'(a,10(f14.7,1x))') '> phenotype: ',( pop_alpha(i)%phenotype(j), j=1,np(compound) )
+    write(6,'(a,1x,f14.7)')'Fitness:',pop_alpha(i)%fitness
     write(6,'(a)')'--------------------------'
    end do
    finish_make: do i=n_refits+1,ga_size
     if(i>ga_size) exit finish_make
-    write(6,'(a,1x,i4)') 'Initial input (random generation)',i
+    write(6,'(a,1x,i4)') 'Initial agent (random generation)',i
     pop_alpha(i) = new_citizen(compound,n_files,CIFFiles)
     call UpdateCitizen(pop_alpha(i),compound,n_files,CIFFiles)
     write(string,'("(a13, ", i4, "a, a1)" )') 32*np(Compound)
     write(6,string) '> genotype: [',pop_alpha(i)%genotype(1:32*np(Compound)),']'
     write(6,'(a,10(f14.7,1x))') '> phenotype:',( pop_alpha(i)%phenotype(j), j=1,np(compound) )
+    write(6,'(a,1x,f14.7)')'Fitness:',pop_alpha(i)%fitness
     write(6,'(a)')'--------------------------'
    end do finish_make
    write(6,'(a)')'[...]'
@@ -1228,7 +1222,7 @@ end module mod_genetic
 !
 !module mod_simplex
 !use mod_random
-!use fitter_globals
+!use flama_globals
 !use qsort_c_module
 !use mod_genetic
 !implicit none
@@ -1553,12 +1547,12 @@ end module mod_genetic
 ! ======================================================================
 !end module mod_simplex
 !
-program fitter
+program flama
  use,intrinsic :: iso_fortran_env
  use types
  use mod_random
  use get_structures
- use fitter_globals
+ use flama_globals
  use mod_genetic
  !use mod_simplex
  implicit none
@@ -1581,4 +1575,4 @@ program fitter
   !call fit_simplex()
  end if
  call WriteEnergies(n_files,CIFFiles,"end")
-end program fitter
+end program flama
