@@ -889,10 +889,11 @@ end function get_file_unit
   return
  end function Fitness
 
- subroutine WriteCitizen(k,kk,kkk,compound,lod,vgh)
+ subroutine WriteCitizen(k,kk,kkk,compound,lod) !,vgh)
   ! call WriteCitizen(1,1,1,compound,1,1)
   implicit none
-  integer,intent(in)             :: k,kk,compound,lod,vgh,kkk
+  integer,intent(in)             :: k,kk,compound,lod !,vgh
+  real,intent(in)                :: kkk ! biodiversity
   integer                        :: i
   character(len=100)             :: fmt_
   character(len=32*np(compound)) :: wnowaste
@@ -906,8 +907,8 @@ end function get_file_unit
    wnowasteparam(i) = parents(k)%phenotype(i)
   end do
   wfitness = parents(k)%fitness
-  write(6,'(i2,1x,i5,1x,a32,1x,e25.12,1x,e25.12,1x,a,1x,a,i8,a,i8,a,1x,a)')k,kk,wnowaste(1:32),&
-       wnowasteparam(1),wfitness,'[Fitness]','(',kkk,'/',vgh,')','[Similarity]' !,k
+  write(6,'(i2,1x,i5,1x,a32,1x,e25.12,1x,e25.12,1x,a,1x,a,e25.12,a,1x,a)')k,kk,wnowaste(1:32),&
+       wnowasteparam(1),wfitness,'[Fitness]','(',kkk,')','[Similarity]' !,k
   do i=2,np(compound)
    if(lod>0.and.i==3)then
     write(6,'(9x,a32,1x,e25.12,10x,a,1x,i2,a)')wnowaste(1+32*(i-1):32*i),wnowasteparam(i),'Finishing:',lod,'/10'
@@ -962,48 +963,60 @@ end function get_file_unit
   return
  end function real2bin
 !
- integer function Biodiversity( compound, animalito)
-  implicit none
-  integer,intent(in)             :: Compound
-  type(typ_ga), intent(inout)    :: animalito(1:ga_size)
-  integer                        :: suma
-  integer                        :: i,j,k,cont
-  character(len=20)              :: mode = 'Normal'
-  logical                        :: flag = .false.
-  real                           :: error_d = 1e-3
-  select case (mode)
-   case('None')
-    Biodiversity = 0
-   case('Normal')
-    suma=0
-    Biodiversity = 0
-    suma=0.5*ga_size*ga_size-ga_size
-    do k =1,ga_size
-     do j=k+1,ga_size
-      !suma = suma + 1
-      if( animalito(k)%genotype(1:32*np(Compound)) == animalito(j)%genotype(1:32*np(Compound)) )then
-       Biodiversity = Biodiversity + 1
-      end if
-     end do
-    end do
-   case('Superficial')
-    Biodiversity = 0.0
-    suma=0
-    do k = 1, ga_size
-     do j = k+1,ga_size
-      cont=0
-      suma=suma+1
-      dbio: do i = 1,np(compound)
-       bio: if( abs(animalito(k)%phenotype(i) - animalito(j)%phenotype(i)) <= error_d )then
-        cont=cont+1
-       end if bio
-      end do dbio
-      if( cont == np(compound) ) Biodiversity = Biodiversity + 1
-     end do
-    end do
-  end select
+ real function Biodiversity(compound,agent)
+  implicit None
+  integer,intent(in)          :: Compound
+  type(typ_ga), intent(inout) :: Agent
+  Biodiversity = 0.0
+  do k = 2, GA_ELITISTS
+   Biodiversity = Biodiversity + (agent(i)%fitness -agent(1)%fitness)**2
+  end do
+  Biodiversity=sqrt(Biodiversity)
   return
  end function Biodiversity
+!
+! integer function Biodiversity( compound, animalito)
+!  implicit none
+!  integer,intent(in)             :: Compound
+!  type(typ_ga), intent(inout)    :: animalito(1:ga_size)
+!  integer                        :: suma
+!  integer                        :: i,j,k,cont
+!  character(len=20)              :: mode = 'Normal'
+!  logical                        :: flag = .false.
+!  real                           :: error_d = 1e-3
+!  select case (mode)
+!   case('None')
+!    Biodiversity = 0
+!   case('Normal')
+!    suma=0
+!    Biodiversity = 0
+!    suma=0.5*ga_size*ga_size-ga_size
+!    do k =1,ga_size
+!     do j=k+1,ga_size
+!      !suma = suma + 1
+!      if( animalito(k)%genotype(1:32*np(Compound)) == animalito(j)%genotype(1:32*np(Compound)) )then
+!       Biodiversity = Biodiversity + 1
+!      end if
+!     end do
+!    end do
+!   case('Superficial')
+!    Biodiversity = 0.0
+!    suma=0
+!    do k = 1, ga_size
+!     do j = k+1,ga_size
+!      cont=0
+!      suma=suma+1
+!      dbio: do i = 1,np(compound)
+!       bio: if( abs(animalito(k)%phenotype(i) - animalito(j)%phenotype(i)) <= error_d )then
+!        cont=cont+1
+!       end if bio
+!      end do dbio
+!      if( cont == np(compound) ) Biodiversity = Biodiversity + 1
+!     end do
+!    end do
+!  end select
+!  return
+! end function Biodiversity
 
  subroutine Mutate( macrophage , compound )
   implicit none
@@ -1070,6 +1083,7 @@ end function get_file_unit
     call Mutate(children(i),compound)
    else if ( rrr >= GA_MutationRate .and. rrr <= GA_MutationRate + GA_DisasterRate ) then
     call NuclearDisaster(Compound,n_files,CIFFiles)
+    return
    end if
   end do
   do i = 1, ga_size
@@ -1135,7 +1149,7 @@ end function get_file_unit
   integer,parameter           :: maxstep = 100, minstep = 10
   integer                     :: kk, ii, i, j, k,vgh
   real                        :: diff = 0.0, fit0 = 0.0
-  integer                     :: eps
+  real                        :: eps
   character(len=100)          :: string
   write(6,'(a)')'Initialising GA World:'
   write(6,'(i5,1x,a,1x,i5,1x,a,f14.7,1x,a)')ga_size,'(elites:',int(ga_eliterate*ga_size),'mutate:',ga_mutationrate,')'
@@ -1178,11 +1192,10 @@ end function get_file_unit
   converge: do while ( .true. )
    ii=ii+1
    call SortByFitness()
-   !eps = Biodiversity( compound, children)
-   eps = 0.0
+   eps = Biodiversity( compound, children)
    diff = eps
    do i=1,GA_ELITISTS
-    call WriteCitizen(i,ii,eps,compound,kk, int(0.5*ga_size*ga_size-ga_size) )
+    call WriteCitizen(i,ii,eps,compound,kk) !int(0.5*ga_size*ga_size-ga_size) )
    end do
    if( ii>=minstep .and. parents(1)%fitness <= 0.1 .and. abs(parents(1)%fitness-fit0) <= 1e-4)then
     kk = kk + 1
