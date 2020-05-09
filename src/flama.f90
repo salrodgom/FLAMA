@@ -966,12 +966,13 @@ end function get_file_unit
  real function Biodiversity(compound,agent)
   implicit None
   integer,intent(in)          :: Compound
-  type(typ_ga), intent(inout) :: Agent
-  Biodiversity = 0.0
-  do k = 2, GA_ELITISTS
-   Biodiversity = Biodiversity + (agent(i)%fitness -agent(1)%fitness)**2
-  end do
-  Biodiversity=sqrt(Biodiversity)
+  type(typ_ga), intent(inout) :: Agent(1:ga_size)
+  integer                     :: k
+  Biodiversity = sqrt(sum( ( agent(2:GA_ELITISTS)%fitness - agent(1)%fitness)**2))
+  !do k = 2, GA_ELITISTS
+  ! Biodiversity = Biodiversity + ( agent(k)%fitness - agent(1)%fitness )**2
+  !end do
+  !Biodiversity=sqrt(Biodiversity)
   return
  end function Biodiversity
 !
