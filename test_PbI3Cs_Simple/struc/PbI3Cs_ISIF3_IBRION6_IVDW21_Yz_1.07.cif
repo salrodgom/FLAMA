@@ -1,0 +1,24 @@
+data_PbI3Cs_ISIF3_IBRION6_IVDW21
+_audit_creation_date              Tomorrow
+_audit_creation_method            'iGOR'
+_symmetry_space_group_name_H-M    'P1'
+loop_
+_symmetry_equiv_pos_as_xyz
+  x,y,z
+_cell_length_a                    6.16835
+_cell_length_b                    6.16835
+_cell_length_c                    6.600134
+_cell_angle_alpha                 90.0000
+_cell_angle_beta                  90.0000
+_cell_angle_gamma                 90.0000
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+Cs  Cs  0.0000000038473047  0.9999999953678227  0.0001673086989911
+Pb  Pb  0.4999999962387562  0.4999999900726948  0.4982570019805053
+I   I   0.9999999949710840  0.4999999978442915  0.4992092162435569
+I   I   0.4999999861183682  0.0000000041307615  0.4992092123535059
+I   I   0.5000000193668207  0.5000000131617370  0.9959636847596142
