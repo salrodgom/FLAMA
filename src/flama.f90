@@ -917,22 +917,22 @@ end function get_file_unit
   end do
  end subroutine WriteCitizen
 
- subroutine piksrt(n,arr)
- ! Sort real array() of n elements
- implicit none
- integer :: n,j,i = 0
- REAL    :: a,arr(n)
- do j=2,n
-   a = arr(j)
-   do i=j-1,1,-1
-     if (arr(i)<=a) goto 10
-     arr(i+1)=arr(i)
-   end do
-   i=0
-10  arr(i+1)=a
- end do
- return
- end subroutine piksrt
+ !subroutine piksrt(n,arr)
+ !! Sort real array() of n elements
+ !implicit none
+ !integer :: n,j,i = 0
+ !REAL    :: a,arr(n)
+ !do j=2,n
+ !  a = arr(j)
+ !  do i=j-1,1,-1
+ !    if (arr(i)<=a) goto 10
+ !    arr(i+1)=arr(i)
+ !  end do
+ !  i=0
+!10  arr(i+1)=a
+! end do
+! return
+! end subroutine piksrt
 
  subroutine SortByFitness()
   type(typ_ga)             ::  sorted(1:ga_size)
@@ -954,21 +954,6 @@ end function get_file_unit
   parents=sorted
   return
  end subroutine SortByFitness
-!
-! character(len=32) Real_To_IEEE32( a )
-!  implicit none
-!  real, intent(in) :: a
-!  integer          :: i, j
-!  character(len=4) :: s
-!  open(unit=8,file=".tmp",action="write",status="unknown",form="unformatted")
-!  write(unit=8) a
-!  close(unit=8)
-!  open(unit=8,file=".tmp",action="read",status="old",form="unformatted")
-!  read(unit=8) s
-!  write(Real_To_IEEE32(1:32),"(32I1)")  &
-!   (/ ( (modulo(ichar(s(i:i)) / 2**j, 2), j=7,0,-1), i=4,1,-1 ) /)
-!  return
-! end function Real_To_IEEE32
 !
  pure character(len=32) function real2bin(x)
   implicit none
@@ -1163,7 +1148,7 @@ end function get_file_unit
     write(string,'("(a13, ", i4, "a, a1)" )') 32*np(Compound)
     write(6,string) '> genotype: [',pop_alpha(i)%genotype(1:32*np(Compound)),']'
     write(6,'(a,10(f14.7,1x))') '> phenotype: ',( pop_alpha(i)%phenotype(j), j=1,np(compound) )
-    write(6,'(a,1x,f14.7)')'Fitness:',pop_alpha(i)%fitness
+    write(6,'(a,1x,e25.12)')'Fitness:',pop_alpha(i)%fitness
     write(6,'(a)')'--------------------------'
    end do
    finish_make: do i=n_refits+1,ga_size
@@ -1174,7 +1159,7 @@ end function get_file_unit
     write(string,'("(a13, ", i4, "a, a1)" )') 32*np(Compound)
     write(6,string) '> genotype: [',pop_alpha(i)%genotype(1:32*np(Compound)),']'
     write(6,'(a,10(f14.7,1x))') '> phenotype:',( pop_alpha(i)%phenotype(j), j=1,np(compound) )
-    write(6,'(a,1x,f14.7)')'Fitness:',pop_alpha(i)%fitness
+    write(6,'(a,1x,e25.12)')'Fitness:',pop_alpha(i)%fitness
     write(6,'(a)')'--------------------------'
    end do finish_make
    write(6,'(a)')'[...]'
@@ -1193,7 +1178,7 @@ end function get_file_unit
   converge: do while ( .true. )
    ii=ii+1
    call SortByFitness()
-   eps = Biodiversity( compound, children)
+   !eps = Biodiversity( compound, children)
    eps = 0.0
    diff = eps
    do i=1,GA_ELITISTS
