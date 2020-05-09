@@ -21,8 +21,7 @@ xxxxxxxx17  rho_buck
 xxxxxxxx18  C_buck
 ffit?  .true.
 refit? .true.
-1
-" > input 
+1" > input 
 # 
 echo "8753.5043 
 0.418713 
