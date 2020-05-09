@@ -78,8 +78,8 @@ end module mod_random
 !
 module types
  implicit none
- integer,parameter   :: max_atom_number = 1000
- integer,parameter   :: maxnp = 10, maxcompounds = 1, maxdata = 1000
+ integer,parameter   :: max_atom_number = 100
+ integer,parameter   :: maxnp = 20, maxcompounds = 1, maxdata = 100
  integer,parameter   :: maxlinelength=maxnp*32
  type   CIFFile
   character(len=100) :: filename
@@ -612,6 +612,7 @@ module fitter_globals
     allocate(param(1,0:npar-1))
     np(1) = npar
     param(1,:) = 0.0
+    write(6,'(a,1x,i2)')'Parameters to fit:', npar
     do i=1,npar
      read(5,'(a)') line
      read(line( 1:10),'(a)') ajuste(1,i)
@@ -875,7 +876,7 @@ end function get_file_unit
     ! stop '#'
     !end if
     close(u)
-    write(6,*) "file:", i, CIFFiles(i)%filename, OMP_GET_THREAD_NUM(), u, CIFFiles(i)%cal_energy
+    !write(6,*) "file:", i, CIFFiles(i)%filename, OMP_GET_THREAD_NUM(), u, CIFFiles(i)%cal_energy
     !!!$omp end critical
    end do scan_
 !$omp end do

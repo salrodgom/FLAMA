@@ -1,0 +1,26 @@
+keyword molq
+#
+species 4
+Cs  +1.05200
+Pb  +0.91990
+I   -0.65730
+Br  -0.65730
+#
+buck inter
+Pb Pb .302735031250000E+06 .588147759437561E+00 .847857910156250E+04 0.0 12.0
+Cs Pb .303854406250000E+06 .791560187935829E-01 .298834033203125E+04 0.0 12.0
+Cs Cs .825426500000000E+06 .289815157651901E+00 .430373291015625E+04 0.0 12.0
+I  Pb .770803187500000E+06 .535571575164795E-01 .389929125976562E+04 0.0 12.0
+I  I  .275089875000000E+06 .315600246191025E+00 .374450024414062E+04 0.0 12.0
+I  Cs .822332312500000E+06 .504816710948944E+00 .100390972900391E+04 0.0 12.0
+#
+nobond Pb  core Pb  core
+nobond Pb  core  I  core
+nobond Pb  core Br  core
+nobond Pb  core Cs  core
+nobond I   core  I  core
+nobond I   core Br  core
+nobond I   core Cs  core
+nobond Br  core Br  core
+nobond Br  core Cs  core
+nobond Cs  core Cs  core
