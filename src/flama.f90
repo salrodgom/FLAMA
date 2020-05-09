@@ -453,7 +453,7 @@ module get_structures
     close(100)
     call output_gulp(CIFFiles(i),filename )
     write(6,*)'GULP file:',filename
-    line="~/bin/gulp < "//filename(1:50)//" > tmp "
+    line="~/bin/gulp < "//filename(1:55)//" > tmp "
     call system(line)
     line="grep 'Total lattice energy       =' tmp | grep 'eV' | awk '{print $5}' > c"
     call system(line)
