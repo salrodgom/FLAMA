@@ -325,14 +325,13 @@ module get_structures
  private
  public GenerateCIFFileList, ReadListOfCIFFiles, ReadCIFFiles, WriteEnergies
  contains
+!
   subroutine GenerateCIFFileList()
    implicit none
-   character(len=100)  :: string=" "
-   call system("if [ -f list ] ; then rm list ; touch list ; fi")
-   write(6,'(a)') "if [ -f list ] ; then rm list ; touch list ; fi"
-   string="ls struc/*.cif > list"
+   character(len=1000)  :: string=" "
+   write(string,'(a,1x,)')"if [ -f list_debug ] ; then rm list_debug ; touch list_debug ; fi",&
+    "; ls struc/*.cif > list_debug"
    call system(string)
-   write(6,'(a)')string
   end subroutine GenerateCIFFileList
 !
   subroutine ReadListOfCIFFiles(n_files)
@@ -681,7 +680,7 @@ module mod_genetic
  type(typ_ga), target          :: pop_beta( ga_size )
  contains
 !
- type(type_ga) function new_citizen_no_constrain(compound,n_files_CIFFiles)
+ type(type_ga) function NewCitizenNoConstrain(compound,n_files_CIFFiles)
   implicit None
   integer                     :: i,j,k
   integer,intent(in)          :: n_files,compound
@@ -689,21 +688,23 @@ module mod_genetic
   real                        :: infinite = 3.4028e38
   character(len=15)           :: funk = " "
   ! Initialise variables
-  new_citizen%fitness = infinite
-  new_citizen%genotype = ' '
+  NewCitizenNoConstrain%fitness = infinite
+  NewCitizenNoConstrain%genotype = ' '
   ! Initialise in binary and transform to real:
   do i = 1,32*np(compound)
    ! random array of 0 and 1
-   new_citizen%genotype(i:i) = achar(randint(48,49))
+   NewCitizenNoConstrain%genotype(i:i) = achar(randint(48,49))
   end do
   do i = 1,np(compound)
-   read(new_citizen%genotype(32*(i-1)+1:32*i),'(b32.32)') new_citizen%phenotype(i)
+   read(NewCitizenNoConstrain%genotype(32*(i-1)+1:32*i),'(b32.32)') &
+    NewCitizenNoConstrain%phenotype(i)
   end do
-  new_citizen%fitness = fitness( new_citizen%phenotype,compound,n_files,CIFFiles)
+  NewCitizenNoConstrain%fitness = &
+    fitness( NewCitizenNoConstrain%phenotype,compound,n_files,CIFFiles)
   return
- end function new_citizen_no_constrain
+ end function NewCitizenNoConstrain
 !
- type(typ_ga) function new_citizen(compound,n_files,CIFFiles)
+ type(typ_ga) function NewCitizen(compound,n_files,CIFFiles)
   implicit none
   integer                     :: i,j,k
   integer,intent(in)          :: n_files,compound
@@ -711,8 +712,8 @@ module mod_genetic
   real                        :: infinite = 3.4028e38
   character(len=15)           :: funk = " "
   ! Initialise variables
-  new_citizen%fitness = infinite
-  new_citizen%genotype = ' '
+  NewCitizen%fitness = infinite
+  NewCitizen%genotype = ' '
   ! Initialise in real, in a range, and transform to binary:
   make_new_values_under_constrains: do i = 1,np(compound)
    funk = " "
@@ -721,29 +722,29 @@ module mod_genetic
     funk=adjustl(funk)
     select case(funk)
      case("A_buck")
-      new_citizen%phenotype(i) = r4_uniform( 1e-1 , 1e+6 )
+      NewCitizen%phenotype(i) = r4_uniform( 1e-1 , 1e+6 )
      case("A_lj")
-      new_citizen%phenotype(i) = r4_uniform( 1e-5, 1e10 )
+      NewCitizen%phenotype(i) = r4_uniform( 1e-5, 1e10 )
      case("epsilon")
-      new_citizen%phenotype(i) = r4_uniform( 0.001, 1.00 )
+      NewCitizen%phenotype(i) = r4_uniform( 0.001, 1.00 )
      case("sigma")
-      new_citizen%phenotype(i) = r4_uniform( 1.0, 5.5 )
+      NewCitizen%phenotype(i) = r4_uniform( 1.0, 5.5 )
      case("rho_buck")
-      new_citizen%phenotype(i) = r4_uniform( 1e-3, 0.6 )
+      NewCitizen%phenotype(i) = r4_uniform( 1e-3, 0.6 )
      case("C_buck")
-      new_citizen%phenotype(i) = r4_uniform( 0.0, 1e4 )
+      NewCitizen%phenotype(i) = r4_uniform( 0.0, 1e4 )
     end select
    end if phys_constrains_make_values
-   new_citizen%genotype(32*(i-1)+1:32*i)=real2bin( new_citizen%phenotype(i))
+   NewCitizen%genotype(32*(i-1)+1:32*i)=real2bin( NewCitizen%phenotype(i))
   end do make_new_values_under_constrains
-  new_citizen%fitness = fitness( new_citizen%phenotype,compound,n_files,CIFFiles)
+  NewCitizen%fitness = fitness( NewCitizen%phenotype,compound,n_files,CIFFiles)
   return
- end function new_citizen
+ end function NewCitizen
 !
  subroutine UpdateCitizen( axolotl ,compound , n_files, CIFFiles)
   implicit none
   integer,intent(in)          :: compound,n_files
-  type(CIFFile),intent(inout)    :: CIFFiles(n_files)
+  type(CIFFile),intent(inout) :: CIFFiles(n_files)
   integer                     :: i,GA_ELITISTS
   real                        :: infinite = 0.0
   type(typ_ga), intent(inout) :: axolotl
@@ -808,38 +809,38 @@ end function get_file_unit
     funk=adjustl(funk)
     select case(funk)
      case("A_buck")
-      if (phenotype(i)<=1e-2.or.isnan(phenotype(i)).or.phenotype(i)>=1e10)then
-       penalty=infinite
+      if (phenotype(i)<=1e-6.or.isnan(phenotype(i)).or.phenotype(i)>=1e10)then
+       penalty = infinite
        exit refer
       end if
      case("A_lj")
-      if (phenotype(i)<=1e-5.or.isnan(phenotype(i)).or.phenotype(i)>=1e10)then
-       penalty=infinite
+      if (phenotype(i)<=1e-7.or.isnan(phenotype(i)).or.phenotype(i)>=1e10)then
+       penalty = infinite
        exit refer
       end if
      case("epsilon")
-      if (phenotype(i)<0.001.or.isnan(phenotype(i)).or.phenotype(i)>1.0)then
-       penalty=infinite
+      if (phenotype(i)<0.0001.or.isnan(phenotype(i)).or.phenotype(i)>1.0)then
+       penalty = infinite
        exit refer
       end if
      case("sigma")
-      if (phenotype(i)<1.0.or.isnan(phenotype(i)).or.phenotype(i)>5.5)then
-       penalty=infinite
+      if (phenotype(i)<1.0.or.isnan(phenotype(i)).or.phenotype(i)>6.0)then
+       penalty = infinite
        exit refer
       end if
      case("rho_buck")
-      if (phenotype(i)<1.0e-3.or.phenotype(i)>1.0.or.isnan(phenotype(i)))then
-       penalty=infinite
+      if (phenotype(i)<1.0e-3.or.phenotype(i)>0.8.or.isnan(phenotype(i)))then
+       penalty = infinite
        exit refer
       end if
      case("C_buck")
       if(phenotype(i)<0.0.or.phenotype(i)>1e7.or.isnan(phenotype(i)))then
-       penalty=infinite
+       penalty = infinite
        exit refer
       end if
      case("E_shift")
-      if(phenotype(i)>=maxval(CIFFiles%obs_energy))then
-       penalty=infinite
+      if(phenotype(i)>=maxval(CIFFiles%obs_energy).or.isnan(phenotype(i)))then
+       penalty = infinite
        exit refer
       end if
     end select
@@ -888,7 +889,7 @@ end function get_file_unit
 !$omp end do
 !$omp end parallel
 !$omp barrier
-   obs_energy_min=minval(CIFFiles%obs_energy)
+   !obs_energy_min=minval(CIFFiles%obs_energy)
    cal_energy_min=minval(CIFFiles%cal_energy)
    do i=1,n_files
     fitness = fitness + &
@@ -1123,7 +1124,7 @@ end function get_file_unit
    finish_make: do i=n_refits+1,ga_size
     if(i>ga_size) exit finish_make
     write(6,'(a,1x,i4)') 'Initial agent (random generation)',i
-    pop_alpha(i) = new_citizen(compound,n_files,CIFFiles)
+    pop_alpha(i) = NewCitizen(compound,n_files,CIFFiles)
     call UpdateCitizen(pop_alpha(i),compound,n_files,CIFFiles)
     write(string,'("(a13, ", i4, "a, a1)" )') 32*np(Compound)
     write(6,string) '> genotype: [',pop_alpha(i)%genotype(1:32*np(Compound)),']'
@@ -1136,7 +1137,7 @@ end function get_file_unit
    children => pop_beta
    call SortByFitness()
   else
-   pop_alpha = [(new_citizen(compound,n_files,CIFFiles), i = 1,ga_size)]
+   pop_alpha = [(NewCitizen(compound,n_files,CIFFiles), i = 1,ga_size)]
    parents =>  pop_alpha
    children => pop_beta
   end if

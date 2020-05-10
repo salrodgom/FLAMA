@@ -1,3 +1,4 @@
+#
 install:
 	gfortran flama.f90 -o flama -ffree-form -march=native -fopenmp
 all:
