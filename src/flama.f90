@@ -670,10 +670,9 @@ module mod_genetic
  use get_structures
  use GeometricProperties
  implicit none
- !private
  public fit
- integer,parameter             :: ga_size         = 800 !2**10 ! numero de cromosomas
- real,parameter                :: ga_mutationrate = 0.3333 !2000/real(ga_size) ! ga_mutationrate=0.333
+ integer,parameter             :: ga_size         = 800 ! number of GA agents
+ real,parameter                :: ga_mutationrate = 0.3333 !2000/real(ga_size)
  real,parameter                :: ga_eliterate= 0.01, GA_DisasterRate = 0.0000001
  integer,parameter             :: ga_elitists = int( ga_size * ga_eliterate)
  type(typ_ga), pointer         :: parents(:)
@@ -681,6 +680,28 @@ module mod_genetic
  type(typ_ga), target          :: pop_alpha( ga_size )
  type(typ_ga), target          :: pop_beta( ga_size )
  contains
+!
+ type(type_ga) function new_citizen_no_constrain(compound,n_files_CIFFiles)
+  implicit None
+  integer                     :: i,j,k
+  integer,intent(in)          :: n_files,compound
+  type(CIFFile),intent(inout) :: CIFFiles(n_files)
+  real                        :: infinite = 3.4028e38
+  character(len=15)           :: funk = " "
+  ! Initialise variables
+  new_citizen%fitness = infinite
+  new_citizen%genotype = ' '
+  ! Initialise in binary and transform to real:
+  do i = 1,32*np(compound)
+   ! random array of 0 and 1
+   new_citizen%genotype(i:i) = achar(randint(48,49))
+  end do
+  do i = 1,np(compound)
+   read(new_citizen%genotype(32*(i-1)+1:32*i),'(b32.32)') new_citizen%phenotype(i)
+  end do
+  new_citizen%fitness = fitness( new_citizen%phenotype,compound,n_files,CIFFiles)
+  return
+ end function new_citizen_no_constrain
 !
  type(typ_ga) function new_citizen(compound,n_files,CIFFiles)
   implicit none
@@ -692,13 +713,6 @@ module mod_genetic
   ! Initialise variables
   new_citizen%fitness = infinite
   new_citizen%genotype = ' '
-  ! Initialise in binary and transform to real:
-  !do i = 1,32*np(compound)
-  ! new_citizen%genotype(i:i) = achar(randint(48,49))
-  !end do
-  !do i = 1,np(compound)
-  ! read(new_citizen%genotype(32*(i-1)+1:32*i),'(b32.32)') new_citizen%phenotype(i)
-  !end do
   ! Initialise in real, in a range, and transform to binary:
   make_new_values_under_constrains: do i = 1,np(compound)
    funk = " "
@@ -890,9 +904,8 @@ end function get_file_unit
  end function Fitness
 
  subroutine WriteCitizen(k,kk,kkk,compound,lod) !,vgh)
-  ! call WriteCitizen(1,1,1,compound,1,1)
   implicit none
-  integer,intent(in)             :: k,kk,compound,lod !,vgh
+  integer,intent(in)             :: k,kk,compound,lod
   real,intent(in)                :: kkk ! biodiversity
   integer                        :: i
   character(len=100)             :: fmt_
@@ -901,40 +914,24 @@ end function get_file_unit
   do i=1,32*np(compound)
    wnowaste(i:i)=' '
   end do
-  ! ...
   wnowaste = parents(k)%genotype
   do i=1,np(compound)
    wnowasteparam(i) = parents(k)%phenotype(i)
   end do
   wfitness = parents(k)%fitness
-  write(6,'(i2,1x,i5,1x,a32,1x,e25.12,1x,e25.12,1x,a,1x,a,e25.12,a,1x,a)')k,kk,wnowaste(1:32),&
+  write(6,'(i2,1x,i5,1x,a32,1x,e25.12,1x,e25.12,1x,a,1x,a,e25.12,a,1x,a)') &
+       k,kk,wnowaste(1:32),&
        wnowasteparam(1),wfitness,'[Fitness]','(',kkk,')','[Similarity]' !,k
   do i=2,np(compound)
    if(lod>0.and.i==3)then
-    write(6,'(9x,a32,1x,e25.12,10x,a,1x,i2,a)')wnowaste(1+32*(i-1):32*i),wnowasteparam(i),'Finishing:',lod,'/10'
+    write(6,'(9x,a32,1x,e25.12,10x,a,1x,i2,a)')&
+        wnowaste(1+32*(i-1):32*i),wnowasteparam(i),'Finishing:',lod,'/10'
    else
     write(6,'(9x,a32,1x,e25.12)')wnowaste(1+32*(i-1):32*i),wnowasteparam(i)
    end if
   end do
  end subroutine WriteCitizen
-
- !subroutine piksrt(n,arr)
- !! Sort real array() of n elements
- !implicit none
- !integer :: n,j,i = 0
- !REAL    :: a,arr(n)
- !do j=2,n
- !  a = arr(j)
- !  do i=j-1,1,-1
- !    if (arr(i)<=a) goto 10
- !    arr(i+1)=arr(i)
- !  end do
- !  i=0
-!10  arr(i+1)=a
-! end do
-! return
-! end subroutine piksrt
-
+!
  subroutine SortByFitness()
   type(typ_ga)             ::  sorted(1:ga_size)
   integer                  ::  k,i
@@ -964,61 +961,17 @@ end function get_file_unit
  end function real2bin
 !
  real function Biodiversity(compound,agent)
+! calculates the standard deviation of the fitness centered in the first agent
+! lowest value in the list
   implicit None
   integer,intent(in)          :: Compound
   type(typ_ga), intent(inout) :: Agent(1:ga_size)
   integer                     :: k
-  Biodiversity = sqrt(sum( ( agent(2:GA_ELITISTS)%fitness - agent(1)%fitness)**2))
-  !do k = 2, GA_ELITISTS
-  ! Biodiversity = Biodiversity + ( agent(k)%fitness - agent(1)%fitness )**2
-  !end do
-  !Biodiversity=sqrt(Biodiversity)
+  Biodiversity = sqrt(sum( ( agent(0:ga_size)%fitness - agent(1)%fitness)**2))
+  Biodiversity = Biodiversity/real(ga_size -1)
   return
  end function Biodiversity
 !
-! integer function Biodiversity( compound, animalito)
-!  implicit none
-!  integer,intent(in)             :: Compound
-!  type(typ_ga), intent(inout)    :: animalito(1:ga_size)
-!  integer                        :: suma
-!  integer                        :: i,j,k,cont
-!  character(len=20)              :: mode = 'Normal'
-!  logical                        :: flag = .false.
-!  real                           :: error_d = 1e-3
-!  select case (mode)
-!   case('None')
-!    Biodiversity = 0
-!   case('Normal')
-!    suma=0
-!    Biodiversity = 0
-!    suma=0.5*ga_size*ga_size-ga_size
-!    do k =1,ga_size
-!     do j=k+1,ga_size
-!      !suma = suma + 1
-!      if( animalito(k)%genotype(1:32*np(Compound)) == animalito(j)%genotype(1:32*np(Compound)) )then
-!       Biodiversity = Biodiversity + 1
-!      end if
-!     end do
-!    end do
-!   case('Superficial')
-!    Biodiversity = 0.0
-!    suma=0
-!    do k = 1, ga_size
-!     do j = k+1,ga_size
-!      cont=0
-!      suma=suma+1
-!      dbio: do i = 1,np(compound)
-!       bio: if( abs(animalito(k)%phenotype(i) - animalito(j)%phenotype(i)) <= error_d )then
-!        cont=cont+1
-!       end if bio
-!      end do dbio
-!      if( cont == np(compound) ) Biodiversity = Biodiversity + 1
-!     end do
-!    end do
-!  end select
-!  return
-! end function Biodiversity
-
  subroutine Mutate( macrophage , compound )
   implicit none
   type(typ_ga), intent(inout) :: macrophage
@@ -1029,8 +982,9 @@ end function get_file_unit
   end do
   return
  end subroutine Mutate
-
+!
  subroutine NuclearDisaster(Compound,n_files,CIFFiles)
+! all the poor people mutate, the elistists survive
   implicit none
   integer,intent(in)      ::  Compound,n_files
   type(CIFFile),intent(inout):: CIFFiles(n_files)
@@ -1044,7 +998,7 @@ end function get_file_unit
   end do
   return
  end subroutine NuclearDisaster
-
+!
  subroutine Swap()
   if (associated(parents, target=pop_alpha)) then
       parents => pop_beta
