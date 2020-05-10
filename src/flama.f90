@@ -4,6 +4,7 @@ module mod_random
  private
  public init_random_seed, randint, r4_uniform
  contains
+!
  subroutine init_random_seed( )
   use iso_fortran_env, only: int64
   implicit none
@@ -47,15 +48,15 @@ module mod_random
   ! This simple PRNG might not be good enough for real work, but is
   ! sufficient for seeding a better PRNG.
   function lcg(s)
-    integer :: lcg
-    integer(int64) :: s
-    if (s == 0) then
-       s = 104729
-    else
-       s = mod(s, 4294967296_int64)
-    end if
-    s = mod(s * 279470273_int64, 4294967291_int64)
-    lcg = int(mod(s, int(huge(0), int64)), kind(0))
+   integer :: lcg
+   integer(int64) :: s
+   if (s == 0) then
+    s = 104729
+   else
+    s = mod(s, 4294967296_int64)
+   end if
+   s = mod(s * 279470273_int64, 4294967291_int64)
+   lcg = int(mod(s, int(huge(0), int64)), kind(0))
   end function lcg
  end subroutine init_random_seed
 !
@@ -942,8 +943,8 @@ end function get_file_unit
    if(isnan(parents(k)%fitness)) ftnss(k) = 9999999999.d99
   end do
   call QsortC( ftnss )
-  exter:do k=1,ga_size ! <- ordered
-   inter:do i=1,ga_size
+  exter:do k = 1, ga_size ! <- ordered
+   inter:do i = 1, ga_size
    if( dble(parents(i)%fitness) == ftnss(k))then
      sorted(k) = parents(i)
      cycle inter
