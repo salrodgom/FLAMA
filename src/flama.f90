@@ -199,13 +199,14 @@ module GeometricProperties
   cell_0(4) = radtodeg*acos(temp(4))
   cell_0(5) = radtodeg*acos(temp(5))
   cell_0(6) = radtodeg*acos(temp(6))
-  DO i=4,6
-     if (abs(cell_0(i) - 90.0 ).lt.0.00001) cell_0(i) = 90.0
-     if (abs(cell_0(i) - 120.0).lt.0.00001) cell_0(i) = 120.0
-  ENDDO
-  RETURN
- END SUBROUTINE uncell
- SUBROUTINE inverse(a,c,n)
+  do i=4,6
+   if (abs(cell_0(i) - 90.0 ).lt.0.00001) cell_0(i) = 90.0
+   if (abs(cell_0(i) - 120.0).lt.0.00001) cell_0(i) = 120.0
+  end do
+  return
+ end subroutine uncell
+!
+ subroutine inverse(a,c,n)
  implicit none
  integer n
  real a(n,n), c(n,n)
@@ -1149,7 +1150,7 @@ end function get_file_unit
    eps = Biodiversity( compound, children)
    diff = eps
    do i=1,GA_ELITISTS
-    call WriteCitizen(i,ii,eps,compound,kk) !int(0.5*ga_size*ga_size-ga_size) )
+    call WriteCitizen(i,ii,eps,compound,kk)
    end do
    if( ii>=minstep .and. parents(1)%fitness <= 0.1 .and. abs(parents(1)%fitness-fit0) <= 1e-4)then
     kk = kk + 1
