@@ -889,10 +889,9 @@ end function get_file_unit
 !$omp end parallel
 !$omp barrier
    cal_energy_min=minval(CIFFiles%cal_energy)
+   CIFFiles(1:n_files)%cal_energy=CIFFiles(1:n_files)%cal_energy-cal_energy_min
    do i=1,n_files
-    CIFFiles(i)%cal_energy = CIFFiles(i)%cal_energy - cal_energy_min
-    fitness = fitness + &
-    0.5*CIFFiles(i)%obs_energy_weight*abs( CIFFiles(i)%obs_energy - CIFFiles(i)%cal_energy) )**2
+    fitness=fitness+0.5*CIFFiles(i)%obs_energy_weight*abs(CIFFiles(i)%obs_energy-CIFFiles(i)%cal_energy))**2
    end do
   else
    fitness = fitness + penalty
@@ -967,7 +966,7 @@ end function get_file_unit
   integer,intent(in)          :: Compound
   type(typ_ga), intent(inout) :: Agent(1:ga_size)
   integer                     :: k
-  Biodiversity = sqrt(sum( ( agent(0:ga_size)%fitness - agent(1)%fitness)**2))
+  Biodiversity = sqrt(sum( ( agent(2:ga_size)%fitness - agent(1)%fitness)**2))
   Biodiversity = Biodiversity/real(ga_size -1)
   return
  end function Biodiversity
