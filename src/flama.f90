@@ -199,14 +199,13 @@ module GeometricProperties
   cell_0(4) = radtodeg*acos(temp(4))
   cell_0(5) = radtodeg*acos(temp(5))
   cell_0(6) = radtodeg*acos(temp(6))
-  do i=4,6
-   if (abs(cell_0(i) - 90.0 ).lt.0.00001) cell_0(i) = 90.0
-   if (abs(cell_0(i) - 120.0).lt.0.00001) cell_0(i) = 120.0
-  end do
-  return
- end subroutine uncell
-!
- subroutine inverse(a,c,n)
+  DO i=4,6
+     if (abs(cell_0(i) - 90.0 ).lt.0.00001) cell_0(i) = 90.0
+     if (abs(cell_0(i) - 120.0).lt.0.00001) cell_0(i) = 120.0
+  ENDDO
+  RETURN
+ END SUBROUTINE uncell
+ SUBROUTINE inverse(a,c,n)
  implicit none
  integer n
  real a(n,n), c(n,n)
@@ -331,7 +330,7 @@ module get_structures
   subroutine GenerateCIFFileList()
    implicit none
    character(len=1000)  :: string=" "
-   write(string,'(a,1x,a)')"if [ -f list_debug ] ; then rm list_debug ; touch list_debug ; fi",&
+   write(string,'(a,1x,)')"if [ -f list_debug ] ; then rm list_debug ; touch list_debug ; fi",&
     "; ls struc/*.cif > list_debug"
    call system(string)
   end subroutine GenerateCIFFileList
@@ -477,10 +476,9 @@ module get_structures
    write(6,'(a,1x,f14.7)') 'Shift:', total_Shift
    write(6,'(4(a,4x))') 'Obs Energy/ eV','Calc. Energy / eV',' weight / -',' filename'
    do i=1,n_files
-    write(6,*) CIFFiles(i)%obs_energy, CIFFiles(i)%cal_energy, CIFFiles(i)%obs_energy_weight, &
-               trim(CIFFiles(i)%filename)
+    write(6,*)CIFFiles(i)%obs_energy, CIFFiles(i)%cal_energy, &
+              CIFFiles(i)%obs_energy_weight, trim(CIFFiles(i)%filename)
    end do
-   !call output_gulp_fit(444,n_files,CIFFiles)
    return
   end subroutine ReadCIFFiles
 !
@@ -498,9 +496,10 @@ module get_structures
    cal_energy_min=minval(CIFFiles%cal_energy)
    open(u,file=filename,iostat=ierr)
    if(ierr/=0) stop "fitness.txt can not be open"
-   write(u,'(a)')"# struc.;  cell_size/A ;  Energy Obs, / eV ; Energy Cal. / eV"
+   write(u,'(a)')"# struc.;  cell_size/A ;  Rela. Energy Obs / eV; DIFF ; Rela. Energy Cal. / eV ; Obs.Energy ; Cal.Energy"
    do i=1,n_files
-    write(u,*)i,CIFFiles(i)%cell_0(1),CIFFiles(i)%obs_energy,CIFFiles(i)%cal_energy
+    write(u,*)i,CIFFiles(i)%cell_0(1),CIFFiles(i)%obs_energy,&
+ ,CIFFiles(i)%obs_energy,CIFFiles(i)%cal_energy
    end do
    close(u)
   end subroutine WriteEnergies
@@ -680,29 +679,29 @@ module mod_genetic
  type(typ_ga), target          :: pop_beta( ga_size )
  contains
 !
-! type(type_ga) function NewCitizenNoConstrain(compound,n_files_CIFFiles)
-!  implicit None
-!  integer                     :: i,j,k
-!  integer,intent(in)          :: n_files,compound
-!  type(CIFFile),intent(inout) :: CIFFiles(n_files)
-!  real                        :: infinite = 3.4028e38
-!  character(len=15)           :: funk = " "
-!  ! Initialise variables
-!  NewCitizenNoConstrain%fitness = infinite
-!  NewCitizenNoConstrain%genotype = ' '
-!  ! Initialise in binary and transform to real:
-!  do i = 1,32*np(compound)
-!   ! random array of 0 and 1
-!   NewCitizenNoConstrain%genotype(i:i) = achar(randint(48,49))
-!  end do
-!  do i = 1,np(compound)
-!   read(NewCitizenNoConstrain%genotype(32*(i-1)+1:32*i),'(b32.32)') &
-!    NewCitizenNoConstrain%phenotype(i)
-!  end do
-!  NewCitizenNoConstrain%fitness = &
-!    fitness( NewCitizenNoConstrain%phenotype,compound,n_files,CIFFiles)
-!  return
-! end function NewCitizenNoConstrain
+ type(type_ga) function NewCitizenNoConstrain(compound,n_files_CIFFiles)
+  implicit None
+  integer                     :: i,j,k
+  integer,intent(in)          :: n_files,compound
+  type(CIFFile),intent(inout) :: CIFFiles(n_files)
+  real                        :: infinite = 3.4028e38
+  character(len=15)           :: funk = " "
+  ! Initialise variables
+  NewCitizenNoConstrain%fitness = infinite
+  NewCitizenNoConstrain%genotype = ' '
+  ! Initialise in binary and transform to real:
+  do i = 1,32*np(compound)
+   ! random array of 0 and 1
+   NewCitizenNoConstrain%genotype(i:i) = achar(randint(48,49))
+  end do
+  do i = 1,np(compound)
+   read(NewCitizenNoConstrain%genotype(32*(i-1)+1:32*i),'(b32.32)') &
+    NewCitizenNoConstrain%phenotype(i)
+  end do
+  NewCitizenNoConstrain%fitness = &
+    fitness( NewCitizenNoConstrain%phenotype,compound,n_files,CIFFiles)
+  return
+ end function NewCitizenNoConstrain
 !
  type(typ_ga) function NewCitizen(compound,n_files,CIFFiles)
   implicit none
@@ -889,10 +888,11 @@ end function get_file_unit
 !$omp end do
 !$omp end parallel
 !$omp barrier
+   !obs_energy_min=minval(CIFFiles%obs_energy)
    cal_energy_min=minval(CIFFiles%cal_energy)
-   CIFFiles(1:n_files)%cal_energy=CIFFiles(1:n_files)%cal_energy-cal_energy_min
    do i=1,n_files
-    fitness=fitness+0.5*CIFFiles(i)%obs_energy_weight*abs(CIFFiles(i)%obs_energy-CIFFiles(i)%cal_energy)**2
+    fitness = fitness + &
+    0.5*CIFFiles(i)%obs_energy_weight*abs(CIFFiles(i)%obs_energy-(CIFFiles(i)%cal_energy-cal_energy_min))**2
    end do
   else
    fitness = fitness + penalty
@@ -902,7 +902,7 @@ end function get_file_unit
   call system("rm -rf *.tmp *.gout")
   return
  end function Fitness
-
+!
  subroutine WriteCitizen(k,kk,kkk,compound,lod) !,vgh)
   implicit none
   integer,intent(in)             :: k,kk,compound,lod
@@ -967,7 +967,7 @@ end function get_file_unit
   integer,intent(in)          :: Compound
   type(typ_ga), intent(inout) :: Agent(1:ga_size)
   integer                     :: k
-  Biodiversity = sqrt(sum( ( agent(2:ga_size)%fitness - agent(1)%fitness)**2))
+  Biodiversity = sqrt(sum( ( agent(0:ga_size)%fitness - agent(1)%fitness)**2))
   Biodiversity = Biodiversity/real(ga_size -1)
   return
  end function Biodiversity
@@ -1009,12 +1009,12 @@ end function get_file_unit
   end if
   return
  end subroutine Swap
-
+!
  subroutine Elitism()
   children(:GA_ELITISTS) = parents(:GA_ELITISTS)
   return
  end subroutine
-
+!
  subroutine Mate(compound,n_files,CIFFiles)
   integer             :: i, i1, i2, spos
   integer, intent(in)      :: compound,n_files
@@ -1046,7 +1046,7 @@ end function get_file_unit
   end do
   return
  end subroutine Mate
-
+!
  subroutine choose_randomly(j1,j2)
   implicit none
   integer,intent(out) :: j1,j2
@@ -1057,7 +1057,7 @@ end function get_file_unit
   end do
   return
  end subroutine choose_randomly
-
+!
  subroutine choose_propto_fitness(j1,j2)
   implicit none
   integer,intent(out) :: j1,j2
@@ -1096,7 +1096,7 @@ end function get_file_unit
    end do slct2
   return
  end subroutine choose_propto_fitness
-
+!
  subroutine fit(Compound,n_files,CIFFiles)
   implicit none
   integer,intent(in)          :: Compound, n_files
@@ -1150,7 +1150,7 @@ end function get_file_unit
    eps = Biodiversity( compound, children)
    diff = eps
    do i=1,GA_ELITISTS
-    call WriteCitizen(i,ii,eps,compound,kk)
+    call WriteCitizen(i,ii,eps,compound,kk) !int(0.5*ga_size*ga_size-ga_size) )
    end do
    if( ii>=minstep .and. parents(1)%fitness <= 0.1 .and. abs(parents(1)%fitness-fit0) <= 1e-4)then
     kk = kk + 1
@@ -1529,4 +1529,5 @@ program flama
   !call fit_simplex()
  end if
  call WriteEnergies(n_files,CIFFiles,"end")
+ deallocate(CIFFiles)
 end program flama
