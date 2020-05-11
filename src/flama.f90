@@ -891,7 +891,7 @@ end function get_file_unit
    cal_energy_min=minval(CIFFiles%cal_energy)
    CIFFiles(1:n_files)%cal_energy=CIFFiles(1:n_files)%cal_energy-cal_energy_min
    do i=1,n_files
-    fitness=fitness+0.5*CIFFiles(i)%obs_energy_weight*abs(CIFFiles(i)%obs_energy-CIFFiles(i)%cal_energy))**2
+    fitness=fitness+0.5*CIFFiles(i)%obs_energy_weight*abs(CIFFiles(i)%obs_energy-CIFFiles(i)%cal_energy)**2
    end do
   else
    fitness = fitness + penalty
