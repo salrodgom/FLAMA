@@ -497,11 +497,9 @@ module get_structures
    cal_energy_min=minval(CIFFiles%cal_energy)
    open(u,file=filename,iostat=ierr)
    if(ierr/=0) stop "fitness.txt can not be open"
-   write(u,'(a)')"# struc.;  cell_size/A ;  Rela. Energy Obs / eV; DIFF ; Rela. Energy Cal. / eV ; Obs.Energy ; Cal.Energy"
+   write(u,'(a)')"# struc.;  cell_size/A ;  Energy Obs, / eV ; Energy Cal. / eV"
    do i=1,n_files
-    write(u,*)i,CIFFiles(i)%cell_0(1),CIFFiles(i)%obs_energy-obs_energy_min,&
-      CIFFiles(i)%cal_energy-cal_energy_min,abs((CIFFiles(i)%obs_energy-obs_energy_min)-&
-     (CIFFiles(i)%cal_energy-cal_energy_min)),CIFFiles(i)%obs_energy,CIFFiles(i)%cal_energy
+    write(u,*)i,CIFFiles(i)%cell_0(1),CIFFiles(i)%obs_energy,CIFFiles(i)%cal_energy
    end do
    close(u)
   end subroutine WriteEnergies
@@ -890,11 +888,11 @@ end function get_file_unit
 !$omp end do
 !$omp end parallel
 !$omp barrier
-   !obs_energy_min=minval(CIFFiles%obs_energy)
    cal_energy_min=minval(CIFFiles%cal_energy)
    do i=1,n_files
+    CIFFiles(i)%cal_energy = CIFFiles(i)%cal_energy - cal_energy_min
     fitness = fitness + &
-    0.5*CIFFiles(i)%obs_energy_weight*abs(CIFFiles(i)%obs_energy-(CIFFiles(i)%cal_energy-cal_energy_min))**2
+    0.5*CIFFiles(i)%obs_energy_weight*abs( CIFFiles(i)%obs_energy - CIFFiles(i)%cal_energy) )**2
    end do
   else
    fitness = fitness + penalty
@@ -1163,6 +1161,7 @@ end function get_file_unit
    call Mate(compound,n_files,CIFFiles)
    call Swap()
    fit0 = parents(1)%fitness
+   call WriteEnergies(n_files,CIFFiles,"res")
   end do converge
   call SortByFitness()
   call WriteLib(compound,children(1)%phenotype)
