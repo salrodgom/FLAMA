@@ -1099,7 +1099,7 @@ end function get_file_unit
   type(CIFFile),intent(inout) :: CIFFiles(n_files)
   integer,parameter           :: maxstep = 100, minstep = 10
   integer                     :: kk, ii, i, j, k,vgh
-  real                        :: diff = 0.0, fit0 = 0.0
+  real                        :: fit0 = 0.0
   real                        :: eps
   character(len=100)          :: string
   write(6,'(a)')'Initialising GA World:'
@@ -1143,8 +1143,9 @@ end function get_file_unit
   converge: do while ( .true. )
    ii=ii+1
    call SortByFitness()
+   fit0 = fitness( parents(1)%phenotype,Compound,n_files,CIFFiles)
+   call WriteEnergies(n_files,CIFFiles,"res")
    eps = Biodiversity( compound, children)
-   diff = eps
    do i=1,GA_ELITISTS
     call WriteCitizen(i,ii,eps,compound,kk) !int(0.5*ga_size*ga_size-ga_size) )
    end do
@@ -1156,9 +1157,6 @@ end function get_file_unit
    if ( ii >= maxstep .or. kk >= 10 ) exit converge
    call Mate(compound,n_files,CIFFiles)
    call Swap()
-   !fit0 = parents(1)%fitness
-   fit0 = fitness( parents(1)%phenotype,Compound,n_files,CIFFiles)
-   call WriteEnergies(n_files,CIFFiles,"res")
   end do converge
   call SortByFitness()
   call WriteLib(compound,children(1)%phenotype)
