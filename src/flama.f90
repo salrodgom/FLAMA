@@ -330,7 +330,7 @@ module get_structures
   subroutine GenerateCIFFileList()
    implicit none
    character(len=1000)  :: string=" "
-   write(string,'(a,1x,)')"if [ -f list_debug ] ; then rm list_debug ; touch list_debug ; fi",&
+   write(string,'(a,1x,a)')"if [ -f list_debug ] ; then rm list_debug ; touch list_debug ; fi",&
     "; ls struc/*.cif > list_debug"
    call system(string)
   end subroutine GenerateCIFFileList
