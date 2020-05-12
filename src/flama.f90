@@ -360,7 +360,7 @@ module get_structures
    integer                       :: i
    real                          :: Z_partition
    real, intent(out)             :: total_Shift
-   real,parameter                :: kBT = 0.2585184283002 ! (eV)
+   real,parameter                :: kBT = 0.05170368566 ! (eV)
    total_Shift = minval(CIFFiles(1:n_files)%obs_energy)
    do i=1,n_files
     CIFFiles(i)%obs_energy = CIFFiles(i)%obs_energy - total_Shift
