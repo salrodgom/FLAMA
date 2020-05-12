@@ -675,29 +675,29 @@ module mod_genetic
  type(typ_ga), target          :: pop_beta( ga_size )
  contains
 !
- type(type_ga) function NewCitizenNoConstrain(compound,n_files_CIFFiles)
-  implicit None
-  integer                     :: i,j,k
-  integer,intent(in)          :: n_files,compound
-  type(CIFFile),intent(inout) :: CIFFiles(n_files)
-  real                        :: infinite = 3.4028e38
-  character(len=15)           :: funk = " "
-  ! Initialise variables
-  NewCitizenNoConstrain%fitness = infinite
-  NewCitizenNoConstrain%genotype = ' '
-  ! Initialise in binary and transform to real:
-  do i = 1,32*np(compound)
-   ! random array of 0 and 1
-   NewCitizenNoConstrain%genotype(i:i) = achar(randint(48,49))
-  end do
-  do i = 1,np(compound)
-   read(NewCitizenNoConstrain%genotype(32*(i-1)+1:32*i),'(b32.32)') &
-    NewCitizenNoConstrain%phenotype(i)
-  end do
-  NewCitizenNoConstrain%fitness = &
-    fitness( NewCitizenNoConstrain%phenotype,compound,n_files,CIFFiles)
-  return
- end function NewCitizenNoConstrain
+ !type(type_ga) function NewCitizenNoConstrain(compound,n_files_CIFFiles)
+ ! implicit None
+ ! integer                     :: i,j,k
+ ! integer,intent(in)          :: n_files,compound
+ ! type(CIFFile),intent(inout) :: CIFFiles(n_files)
+ ! real                        :: infinite = 3.4028e38
+ ! character(len=15)           :: funk = " "
+ ! ! Initialise variables
+ ! NewCitizenNoConstrain%fitness = infinite
+ ! NewCitizenNoConstrain%genotype = ' '
+ ! ! Initialise in binary and transform to real:
+ ! do i = 1,32*np(compound)
+ !  ! random array of 0 and 1
+ !  NewCitizenNoConstrain%genotype(i:i) = achar(randint(48,49))
+ ! end do
+ ! do i = 1,np(compound)
+ !  read(NewCitizenNoConstrain%genotype(32*(i-1)+1:32*i),'(b32.32)') &
+ !   NewCitizenNoConstrain%phenotype(i)
+ ! end do
+ ! NewCitizenNoConstrain%fitness = &
+ !   fitness( NewCitizenNoConstrain%phenotype,compound,n_files,CIFFiles)
+ ! return
+ !end function NewCitizenNoConstrain
 !
  type(typ_ga) function NewCitizen(compound,n_files,CIFFiles)
   implicit none
@@ -963,7 +963,7 @@ end function get_file_unit
   integer,intent(in)          :: Compound
   type(typ_ga), intent(inout) :: Agent(1:ga_size)
   integer                     :: k
-  Biodiversity = sqrt(sum( ( agent(0:ga_size)%fitness - agent(1)%fitness)**2))
+  Biodiversity = sqrt(sum( ( agent(2:ga_size)%fitness - agent(1)%fitness)**2))
   Biodiversity = Biodiversity/real(ga_size -1)
   return
  end function Biodiversity
