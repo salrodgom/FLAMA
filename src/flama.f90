@@ -268,7 +268,7 @@ module GeometricProperties
   integer                         :: zzz
   character(len=2)                :: zlz
   character(len=4)                :: extension=".gin"
-  GULPFilename=CIFFiles%filename(1:Clen_trim(CIFFiles%filename))//extension
+  GULPFilename=CIFFiles%filename(1:Clen_trim(CIFFiles%filename)-4)//extension
   GULPFilename=adjustl(GULPfilename)
   open(newunit=u,file=GULPFilename)
   write(u,'(a)')'single conv molecule'
@@ -451,9 +451,9 @@ module get_structures
      write(6,'(a2,1x,3(f14.7,1x))')CIFFiles(i)%type_symbol(j),(CIFFiles(i)%atom_xcrystal(k,j),k=1,3)
     end do
     close(100)
-    call output_gulp(CIFFiles(i),filename )
-    write(6,*)'GULP file:',filename
-    line="~/bin/gulp < "//filename(1:55)//" > tmp "
+    call output_gulp(CIFFiles(i),filename(1:Clen_trim(filename)))
+    write(6,*)'GULP file:',filename(1:Clen_trim(filename))
+    line="~/bin/gulp < "//filename(1:Clen_trim(filename))//" > tmp "
     call system(line)
     line="grep 'Total lattice energy       =' tmp | grep 'eV' | awk '{print $5}' > c"
     call system(line)
