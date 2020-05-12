@@ -27,13 +27,13 @@ module mod_random
    ! program in parallel.
    call system_clock(t)
    if (t == 0) then
-      call date_and_time(values=dt)
-      t = (dt(1) - 1970) * 365_int64 * 24 * 60 * 60 * 1000 &
-           + dt(2) * 31_int64 * 24 * 60 * 60 * 1000 &
-           + dt(3) * 24_int64 * 60 * 60 * 1000 &
-           + dt(5) * 60 * 60 * 1000 &
-           + dt(6) * 60 * 1000 + dt(7) * 1000 &
-           + dt(8)
+    call date_and_time(values=dt)
+    t = (dt(1) - 1970) * 365_int64 * 24 * 60 * 60 * 1000 &
+      + dt(2) * 31_int64 * 24 * 60 * 60 * 1000 &
+      + dt(3) * 24_int64 * 60 * 60 * 1000 &
+      + dt(5) * 60 * 60 * 1000 &
+      + dt(6) * 60 * 1000 + dt(7) * 1000 &
+      + dt(8)
    end if
    pid = getpid()
    t = ieor(t, int(pid, kind(t)))
@@ -1508,10 +1508,9 @@ program flama
  !use mod_simplex
  implicit none
  type(CIFfile),allocatable       :: CIFFiles(:)
- integer                         :: n_files=0
- print '(4a)', 'This file was compiled by ', &
-       compiler_version(), ' using the options ', &
-       compiler_options()
+ integer                         :: n_files = 0
+ write(6,'(4a)')'This file was compiled by ',compiler_version(),&
+                ' using the options ',compiler_options()
  call read_input()
  call init_random_seed()
  !call GenerateCIFFileList()
@@ -1522,7 +1521,7 @@ program flama
  call WriteEnergies(n_files,CIFFiles,"ini")
  call ReadObservables(n_files,CIFFiles)
  if (flag) then
-  call fit(1,n_files,CIFFiles)
+  call Fit(1,n_files,CIFFiles)
   !call fit_simplex()
  end if
  call WriteEnergies(n_files,CIFFiles,"end")
