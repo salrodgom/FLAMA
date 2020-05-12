@@ -884,11 +884,11 @@ end function get_file_unit
 !$omp end do
 !$omp end parallel
 !$omp barrier
-   !obs_energy_min=minval(CIFFiles%obs_energy)
    cal_energy_min=minval(CIFFiles%cal_energy)
    do i=1,n_files
+    CIFFiles(i)%cal_energy = CIFFiles(i)%cal_energy - cal_energy_min
     fitness = fitness + &
-    0.5*CIFFiles(i)%obs_energy_weight*abs(CIFFiles(i)%obs_energy-(CIFFiles(i)%cal_energy-cal_energy_min))**2
+    0.5*CIFFiles(i)%obs_energy_weight*abs(CIFFiles(i)%obs_energy-(CIFFiles(i)%cal_energy))**2/real(n_files)
    end do
   else
    fitness = fitness + penalty
