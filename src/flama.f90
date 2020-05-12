@@ -968,14 +968,29 @@ end function get_file_unit
   return
  end function Biodiversity
 !
- subroutine Mutate( macrophage , compound )
+ subroutine Mutate( agent , compound )
   implicit none
-  type(typ_ga), intent(inout) :: macrophage
-  integer                     :: ipos,compound
-  do i = 1,np(compound)
-   ipos = randint(32*(i-1)+1,32*i)
-   macrophage%genotype(ipos:ipos) = achar(randint(48,49))
-  end do
+  type(typ_ga), intent(inout) :: agent
+  integer                     :: spos, compound
+  real                        :: r
+  r = r4_uniform(0.0,1.0)
+  if ( r < real(np(compound)-1)/real(np(compound))) then ! (np-1)/np probability
+   spos = randint(1, 32*np(compound) )
+   if( agent%genotype(spos:spos) == achar(48) ) then ! 0 -> 1
+    agent%genotype(spos:spos) = achar(49)
+   else                                              ! 1 -> 0
+    agent%genotype(spos:spos) = achar(48)
+   end if
+  else                                                   ! 1/np      probability
+   do i = 1,np(compound)
+    spos = randint(32*(i-1)+1,32*i)
+    if( agent%genotype(spos:spos) == achar(48) ) then
+     agent%genotype(spos:spos) = achar(49)
+    else
+     agent%genotype(spos:spos) = achar(48)
+    end if
+   end do
+  end if
   return
  end subroutine Mutate
 !
@@ -997,11 +1012,11 @@ end function get_file_unit
 !
  subroutine Swap()
   if (associated(parents, target=pop_alpha)) then
-      parents => pop_beta
-      children => pop_alpha
+   parents => pop_beta
+   children => pop_alpha
   else
-      parents => pop_alpha
-      children => pop_beta
+   parents => pop_alpha
+   children => pop_beta
   end if
   return
  end subroutine Swap
@@ -1012,8 +1027,8 @@ end function get_file_unit
  end subroutine
 !
  subroutine Mate(compound,n_files,CIFFiles)
-  integer             :: i, i1, i2, spos
-  integer, intent(in)      :: compound,n_files
+  integer                     :: i, i1, i2, spos
+  integer, intent(in)         :: compound,n_files
   type(CIFFile),intent(inout) :: CIFFiles(n_files)
   real                :: rrr
   call Elitism()
@@ -1136,8 +1151,7 @@ end function get_file_unit
    parents =>  pop_alpha
    children => pop_beta
   end if
-  ii=0
-  kk=0
+  ii = 0 ; kk = 0
   write(6,'(a)') 'Go Down the Rabbit Hole > '
   write(6,'(a)') '[Only showing the elite ...]'
   converge: do while ( .true. )
@@ -1145,8 +1159,8 @@ end function get_file_unit
    call SortByFitness()
    fit0 = fitness( parents(1)%phenotype,Compound,n_files,CIFFiles)
    call WriteEnergies(n_files,CIFFiles,"res")
-   eps = Biodiversity( compound, children)
-   do i=1,GA_ELITISTS
+   eps  = Biodiversity( compound, children)
+   do i = 1, GA_ELITISTS
     call WriteCitizen(i,ii,eps,compound,kk) !int(0.5*ga_size*ga_size-ga_size) )
    end do
    if( ii>=minstep .and. parents(1)%fitness <= 0.1 .and. abs(parents(1)%fitness-fit0) <= 1e-4)then
