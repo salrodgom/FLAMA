@@ -1097,7 +1097,7 @@ end function get_file_unit
   return
  end subroutine choose_propto_fitness
 !
- subroutine fit(Compound,n_files,CIFFiles)
+ subroutine Fit(Compound,n_files,CIFFiles)
   implicit none
   integer,intent(in)          :: Compound, n_files
   type(CIFFile),intent(inout) :: CIFFiles(n_files)
@@ -1160,7 +1160,8 @@ end function get_file_unit
    if ( ii >= maxstep .or. kk >= 10 ) exit converge
    call Mate(compound,n_files,CIFFiles)
    call Swap()
-   fit0 = parents(1)%fitness
+   !fit0 = parents(1)%fitness
+   fit0 = fitness( parents(1)%phenotype,Compound,n_files,CIFFiles)
    call WriteEnergies(n_files,CIFFiles,"res")
   end do converge
   call SortByFitness()
