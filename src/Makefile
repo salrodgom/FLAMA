@@ -1,8 +1,9 @@
-#
+FFLAGS = -ffree-form -march=native -O3 -fopenmp
+PROGRAM = flama.exe
 install:
-	gfortran flama.f90 -o flama -ffree-form -march=native -fopenmp
+	gfortran flama.f90 -o $(PROGRAM) $(FFLAGS)
 all:
-	gfortran flama.f90 -o flama -ffree-form -march=native -fopenmp
-	cp peros_initial.lib peros.lib ; ./flama < input
+	gfortran flama.f90 -o $(PROGRAM) $(FFLAGS)
+	cp peros_initial.lib peros.lib ; ./$(PROGRAM) < input
 clean:
-	rm -rf flama *.o *.mod
+	rm -rf $(PROGRAM) *.o *.mod
