@@ -489,17 +489,13 @@ module get_structures
    character(len=3),intent(in) :: add
    type(CIFfile),intent(inout) :: CIFFiles(n_files)
    integer                     :: i,u=123,ierr=0
-   real                        :: obs_energy_min,cal_energy_min
    character(len=20)           :: filename = " "
    filename="fitness_"//add(1:3)//".txt"
-   obs_energy_min=minval(CIFFiles%obs_energy)
-   cal_energy_min=minval(CIFFiles%cal_energy)
    open(u,file=filename,iostat=ierr)
    if(ierr/=0) stop "fitness.txt can not be open"
-   write(u,'(a)')"# struc.;  cell_size/A ;  Rela. Energy Obs / eV; DIFF ; Rela. Energy Cal. / eV ; Obs.Energy ; Cal.Energy"
+   write(u,'(a)')"# struc.;  CellSize / A ;  Energy Obs. / eV; Energy Cal. / eV"
    do i=1,n_files
-    write(u,*)i,CIFFiles(i)%cell_0(1),CIFFiles(i)%obs_energy,&
- ,CIFFiles(i)%obs_energy,CIFFiles(i)%cal_energy
+    write(u,*)i,CIFFiles(i)%cell_0(1),CIFFiles(i)%obs_energy,CIFFiles(i)%cal_energy
    end do
    close(u)
   end subroutine WriteEnergies
