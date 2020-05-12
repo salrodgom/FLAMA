@@ -465,7 +465,7 @@ module get_structures
      read(line,*) CIFFiles(i)%cal_energy
     end if
     close(456)
-    line="rm c tmp "//filename//" "
+    line="rm c tmp "//filename(1:Clen_trim(filename))//" "
     call system(line)
     write(6,*)'Calculated, energy', CIFFiles(i)%cal_energy
    end do
