@@ -271,7 +271,7 @@ module GeometricProperties
   GULPFilename=CIFFiles%filename(1:Clen_trim(CIFFiles%filename)-4)//extension
   GULPFilename=adjustl(GULPfilename)
   open(newunit=u,file=GULPFilename)
-  write(u,'(a)')'single conv molecule'
+  write(u,'(a)')'single conv'
   write(u,'(A)')'cell'
   write(u,'(6(f9.5,1x))') (CIFFiles%cell_0(i) , i=1,6)
   write(u,'(A)')'fractional'
@@ -728,6 +728,18 @@ module mod_genetic
       NewCitizen%phenotype(i) = r4_uniform( 1e-3, 0.6 )
      case("C_buck")
       NewCitizen%phenotype(i) = r4_uniform( 0.0, 1e4 )
+     case("uff_r")
+      NewCitizen%phenotype(i) = r4_uniform( 0.1, 2.0 )
+     case("uff_x")
+      NewCitizen%phenotype(i) = r4_uniform( 0.1, 5.0 )
+     case("uff_D")
+      NewCitizen%phenotype(i) = r4_uniform( 0.001, 0.8 )
+     case("uff_zeta")
+      NewCitizen%phenotype(i) = r4_uniform( 10.0, 15.0 )
+     case("uff_Zeff")
+      NewCitizen%phenotype(i) = r4_uniform( 0.0, 5.0 )
+     case("uff_Chi")
+      NewCitizen%phenotype(i) = r4_uniform( 1.0, 10.0 )
     end select
    end if phys_constrains_make_values
    NewCitizen%genotype(32*(i-1)+1:32*i)=real2bin( NewCitizen%phenotype(i))
@@ -838,6 +850,36 @@ end function get_file_unit
        penalty = infinite
        exit refer
       end if
+     case("uff_r")
+      if (phenotype(i)<=0.1.or.isnan(phenotype(i)).or.phenotype(i)>=2.0)then
+       penalty = infinite
+       exit refer
+      end if
+     case("uff_x")
+      if (phenotype(i)<=0.1.or.isnan(phenotype(i)).or.phenotype(i)>=5.0)then
+       penalty = infinite
+       exit refer
+      end if
+     case("uff_D")
+      if (phenotype(i)<=0.001.or.isnan(phenotype(i)).or.phenotype(i)>=0.8)then
+       penalty = infinite
+       exit refer
+      end if
+     case("uff_zeta")
+      if (phenotype(i)<=10.0.or.isnan(phenotype(i)).or.phenotype(i)>=15.0)then
+       penalty = infinite
+       exit refer
+      end if
+     case("uff_Zeff")
+      if (phenotype(i)<=0.0.or.isnan(phenotype(i)).or.phenotype(i)>=5.0)then
+       penalty = infinite
+       exit refer
+      end if
+     case("uff_Chi")
+      if (phenotype(i)<=1.0.or.isnan(phenotype(i)).or.phenotype(i)>=10.0)then
+       penalty = infinite
+       exit refer
+      end if
     end select
    end if phys_constrains
    write(line,'(a,a,a,e20.15,a)')&
@@ -863,13 +905,13 @@ end function get_file_unit
      "grep 'ERROR' ",filename(i)(1:Clen_trim(filename(i))),&
      ".gout | wc -l | awk '{print $1}' >> ",filename(i)(1:Clen_trim(filename(i))),".tmp "
     call system(script)
-    open(newunit = u,file=filename(i)(1:Clen_trim(filename(i)))//".tmp")
-    read(u,'(a)')line
-    if(line(1:20)=="********************")then
-     CIFFiles(i)%cal_energy=infinite
-    else
-     read(line,*) CIFFiles(i)%cal_energy
-    end if
+    !open(newunit = u,file=filename(i)(1:Clen_trim(filename(i)))//".tmp")
+    !read(u,'(a)')line
+    !if(line(1:20)=="********************")then
+    ! CIFFiles(i)%cal_energy = infinite
+    !else
+    ! read(line,*) CIFFiles(i)%cal_energy
+    !end if
     ! CHECK: PROBLEMS IN PARALELL
     !read(u,*) jjj
     !if (jjj>0) then
@@ -877,18 +919,28 @@ end function get_file_unit
     ! write(6,*)'There are errors in output', jjj
     ! stop '#'
     !end if
-    close(u)
+    !close(u)
     ! debug:
     !write(6,*) "file:", i, CIFFiles(i)%filename, OMP_GET_THREAD_NUM(), u, CIFFiles(i)%cal_energy
    end do scan_
 !$omp end do
 !$omp end parallel
-!$omp barrier
+   scan_2: do i=1,n_files
+    open(newunit = u,file=filename(i)(1:Clen_trim(filename(i)))//".tmp")
+    read(u,'(a)')line
+    if (line(1:20)=="********************") then
+     CIFFiles(i)%cal_energy = infinite
+    else
+     read(line,*) CIFFiles(i)%cal_energy
+    end if
+    close(u)
+   end do scan_2
+   !
    cal_energy_min=minval(CIFFiles%cal_energy)
    do i=1,n_files
     CIFFiles(i)%cal_energy = CIFFiles(i)%cal_energy - cal_energy_min
     fitness = fitness + &
-    0.5*CIFFiles(i)%obs_energy_weight*abs(CIFFiles(i)%obs_energy-(CIFFiles(i)%cal_energy))**2/real(n_files)
+    0.5*CIFFiles(i)%obs_energy_weight*abs(CIFFiles(i)%obs_energy-CIFFiles(i)%cal_energy)**2/real(n_files)
    end do
   else
    fitness = fitness + penalty
@@ -1089,22 +1141,22 @@ end function get_file_unit
   end do
   prop = prop / rrr1
   ! select 1:
-   rrr1 = r4_uniform(0.0,1.0)
-   slct1: do i=1,ga_size
-    if(rrr1<=prop(i-1).and.rrr1>prop(i))then
-     j1 = i
-    end if
-   end do slct1
-   ! select 2:
+  rrr1 = r4_uniform(0.0,1.0)
+  slct1: do i=1,ga_size
+   if(rrr1<=prop(i-1).and.rrr1>prop(i))then
+    j1 = i
+   end if
+  end do slct1
+  ! select 2:
+  rrr2 = r4_uniform(0.0,1.0)
+  do while ( rrr1 == rrr2 )
    rrr2 = r4_uniform(0.0,1.0)
-   do while ( rrr1 == rrr2 )
-    rrr2 = r4_uniform(0.0,1.0)
-   end do
-   slct2: do i=1,ga_size
-    if(rrr2<=prop(i-1).and.rrr2>prop(i))then
-     j2 = i
-    end if
-   end do slct2
+  end do
+  slct2: do i=1,ga_size
+   if(rrr2<=prop(i-1).and.rrr2>prop(i))then
+    j2 = i
+   end if
+  end do slct2
   return
  end subroutine choose_propto_fitness
 !
@@ -1135,7 +1187,7 @@ end function get_file_unit
     if(i>ga_size) exit finish_make
     write(6,'(a,1x,i4)') 'Initial agent (random generation)',i
     pop_alpha(i) = NewCitizen(compound,n_files,CIFFiles)
-    call UpdateCitizen(pop_alpha(i),compound,n_files,CIFFiles)
+    !call UpdateCitizen(pop_alpha(i),compound,n_files,CIFFiles)
     write(string,'("(a13, ", i4, "a, a1)" )') 32*np(Compound)
     write(6,string) '> genotype: [',pop_alpha(i)%genotype(1:32*np(Compound)),']'
     write(6,'(a,10(f14.7,1x))') '> phenotype:',( pop_alpha(i)%phenotype(j), j=1,np(compound) )
