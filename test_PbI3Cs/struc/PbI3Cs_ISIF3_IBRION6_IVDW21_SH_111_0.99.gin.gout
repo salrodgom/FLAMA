@@ -1,0 +1,14 @@
+********************************************************************************
+*                       GENERAL UTILITY LATTICE PROGRAM                        *
+*                                 Julian Gale                                  *
+*                       Curtin Institute for Computation                       *
+*                           Department of Chemistry                            *
+*                    Curtin University, Western Australia                      *
+********************************************************************************
+* Version = 5.1.1 * Last modified =  11th April 2019                           *
+********************************************************************************
+error opening file gulptmp_4_2                                                                     
+ Program terminated in subroutine channels attempting to open unit     4
+
+ Program terminated by processor     0 in             channels
+
