@@ -820,7 +820,7 @@ end function get_file_unit
   integer             :: i
   call system("cp peros_input.lib peros.lib")
   referw: do i = 1,np(compound)
-   write(line,'(a,a,a,f20.10,a)')"sed -i 's/",&
+   write(line,'(a,a,a,e20.14,a)')"sed -i 's/",&
     trim(ajuste(1,i)(1:len_trim(ajuste(1,i)))),"/",phenotype(i),"/g' peros.lib"
    call system(line)
   end do referw
@@ -852,12 +852,12 @@ end function get_file_unit
     funk=adjustl(funk)
     select case(funk)
      case("A_buck")
-      if (phenotype(i)<=1e-6.or.isnan(phenotype(i)).or.phenotype(i)>=1e10)then
+      if (phenotype(i)<=1e-6.or.isnan(phenotype(i)).or.phenotype(i)>=1e8)then
        penalty = infinite
        exit refer
       end if
      case("A_lj")
-      if (phenotype(i)<=1e-7.or.isnan(phenotype(i)).or.phenotype(i)>=1e10)then
+      if (phenotype(i)<=1e-7.or.isnan(phenotype(i)).or.phenotype(i)>=1e8)then
        penalty = infinite
        exit refer
       end if
@@ -918,7 +918,7 @@ end function get_file_unit
       end if
     end select
    end if phys_constrains
-   write(line,'(a,a,a,f14.7,a)')&
+   write(line,'(a,a,a,e20.14,a)')&
     "sed -i 's/",trim(ajuste(1,i)(1:len_trim(ajuste(1,i)))),"/",phenotype(i),"/g' peros.lib"
    call system(line)
   end do refer

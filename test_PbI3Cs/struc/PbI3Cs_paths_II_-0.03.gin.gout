@@ -12,7 +12,7 @@
 *  molq         - molecule option activated, but with Coulomb terms retained   *
 ********************************************************************************
 
-  Job Started  at 01:08.50 12th December   2020                               
+  Job Started  at 01:27.33 20th December   2020                               
 
   Number of CPUs =     1
 
@@ -118,29 +118,29 @@
 Atom  Types   Potential      Parameter       Value         Units   Cutoffs(Ang)
   1     2                                                            Min /  Max 
 --------------------------------------------------------------------------------
-Pb   c Pb   c Buckingham    Buckingham A    0.60585180    eV        0.000 12.000
-                            Buckingham rho   1577.9097    Ang       
-                            Buckingham C     0.0000000    eV*Ang^6  
+Pb   c Pb   c Buckingham    Buckingham A     620144.50    eV        0.000 12.000
+                            Buckingham rho  0.44665349    Ang       
+                            Buckingham C     7927.0405    eV*Ang^6  
 --------------------------------------------------------------------------------
-Cs   c Pb   c Buckingham    Buckingham A     21603.008    eV        0.000 12.000
-                            Buckingham rho  0.38733330    Ang       
-                            Buckingham C     1.1082115    eV*Ang^6  
+Cs   c Pb   c Buckingham    Buckingham A     52567.457    eV        0.000 12.000
+                            Buckingham rho  0.42229211    Ang       
+                            Buckingham C     4275.7261    eV*Ang^6  
 --------------------------------------------------------------------------------
-Cs   c Cs   c Buckingham    Buckingham A    0.29148520    eV        0.000 12.000
-                            Buckingham rho   911.81659    Ang       
-                            Buckingham C     0.0000000    eV*Ang^6  
+Cs   c Cs   c Buckingham    Buckingham A     289990.13    eV        0.000 12.000
+                            Buckingham rho  0.44319054    Ang       
+                            Buckingham C     7204.4360    eV*Ang^6  
 --------------------------------------------------------------------------------
-I    c Pb   c Buckingham    Buckingham A     8955.2939    eV        0.000 12.000
-                            Buckingham rho  0.30377300    Ang       
-                            Buckingham C     267.49088    eV*Ang^6  
+I    c Pb   c Buckingham    Buckingham A     520461.94    eV        0.000 12.000
+                            Buckingham rho  0.25294265    Ang       
+                            Buckingham C     6200.9990    eV*Ang^6  
 --------------------------------------------------------------------------------
-I    c I    c Buckingham    Buckingham A     58024.840    eV        0.000 12.000
-                            Buckingham rho  0.17198200E-01Ang       
-                            Buckingham C     1020.4084    eV*Ang^6  
+I    c I    c Buckingham    Buckingham A     995821.50    eV        0.000 12.000
+                            Buckingham rho  0.15203901    Ang       
+                            Buckingham C     2077.0073    eV*Ang^6  
 --------------------------------------------------------------------------------
-I    c Cs   c Buckingham    Buckingham A     40338.777    eV        0.000 12.000
-                            Buckingham rho  0.33098700    Ang       
-                            Buckingham C    0.98120000E-03eV*Ang^6  
+I    c Cs   c Buckingham    Buckingham A     748444.94    eV        0.000 12.000
+                            Buckingham rho  0.48498562    Ang       
+                            Buckingham C     8982.4287    eV*Ang^6  
 --------------------------------------------------------------------------------
 
 ********************************************************************************
@@ -151,14 +151,14 @@ I    c Cs   c Buckingham    Buckingham A     40338.777    eV        0.000 12.000
   Components of energy : 
 
 --------------------------------------------------------------------------------
-  Interatomic potentials     =          10.72459143 eV    
+  Interatomic potentials     =        1078.50268541 eV    
   Monopole - monopole (real) =          -2.64884908 eV    
   Monopole - monopole (recip)=          -8.10023666 eV    
   Monopole - monopole (total)=         -10.74908574 eV    
 --------------------------------------------------------------------------------
-  Total lattice energy       =          -0.02449431 eV    
+  Total lattice energy       =        1067.75359967 eV    
 --------------------------------------------------------------------------------
-  Total lattice energy       =              -2.3633 kJ/(mole unit cells)
+  Total lattice energy       =          103021.9003 kJ/(mole unit cells)
 --------------------------------------------------------------------------------
 
   Peak dynamic memory used =       0.52 MB 
@@ -171,9 +171,9 @@ I    c Cs   c Buckingham    Buckingham A     40338.777    eV        0.000 12.000
 --------------------------------------------------------------------------------
   Calculation of real space energy and derivatives                0.0002
 --------------------------------------------------------------------------------
-  Total CPU time                                                  0.0033
+  Total CPU time                                                  0.0030
 --------------------------------------------------------------------------------
 
 
-  Job Finished at 01:08.50 12th December   2020                               
+  Job Finished at 01:27.33 20th December   2020                               
 

@@ -1,0 +1,179 @@
+********************************************************************************
+*                       GENERAL UTILITY LATTICE PROGRAM                        *
+*                                 Julian Gale                                  *
+*                       Curtin Institute for Computation                       *
+*                           Department of Chemistry                            *
+*                    Curtin University, Western Australia                      *
+********************************************************************************
+* Version = 5.1.1 * Last modified =  11th April 2019                           *
+********************************************************************************
+*  single       - perform a single point run                                   *
+*  conv         - constant volume calculation                                  *
+*  molq         - molecule option activated, but with Coulomb terms retained   *
+********************************************************************************
+
+  Job Started  at 01:27.33 20th December   2020                               
+
+  Number of CPUs =     1
+
+
+  Total number of configurations input =      1
+
+********************************************************************************
+*  Input for Configuration =   1                                               *
+********************************************************************************
+
+  Formula = CsPbI3                                                      
+
+  Number of irreducible atoms/shells =       5
+
+
+  Total number atoms/shells =       5
+
+  Dimensionality = 3               :  Bulk   
+
+
+
+  Cartesian lattice vectors (Angstroms) :
+
+        6.168400    0.000000    0.000000
+        0.000000    6.168400    0.000000
+        0.000000    0.000000    6.168400
+
+  Cell parameters (Angstroms/Degrees):
+
+  a =       6.1684    alpha =  90.0000
+  b =       6.1684    beta  =  90.0000
+  c =       6.1684    gamma =  90.0000
+
+  Initial cell volume =         234.702430 Angs**3
+
+  Temperature of configuration =  0.000     K 
+
+  Pressure of configuration =         0.000 GPa 
+
+  Fractional coordinates of asymmetric unit :
+
+--------------------------------------------------------------------------------
+   No.  Atomic       x           y          z         Charge      Occupancy
+        Label      (Frac)      (Frac)     (Frac)        (e)         (Frac)  
+--------------------------------------------------------------------------------
+      1 Cs    c    0.000000    0.000000    0.000200     1.00000    1.000000    
+      2 Pb    c    0.500000    0.500000    0.498300     0.93414    1.000000    
+      3 I     c    0.000000    0.500000    0.499200    -0.64471    1.000000    
+      4 I     c    0.500000    0.500000    0.996000    -0.64471    1.000000    
+      5 I     c    0.440000    0.940000    0.499200    -0.64471    1.000000    
+--------------------------------------------------------------------------------
+
+
+
+  Molecule list generated from bond lengths :
+
+  Bonds between the following atom types will be excluded : 
+
+   Pb    Core   - Pb    Core
+   I     Core   - Pb    Core
+   Br    Core   - Pb    Core
+   Cs    Core   - Pb    Core
+   I     Core   - I     Core
+   Br    Core   - I     Core
+   I     Core   - Cs    Core
+   Br    Core   - Br    Core
+   Br    Core   - Cs    Core
+   Cs    Core   - Cs    Core
+
+
+  Total number of molecules =     0
+
+
+********************************************************************************
+*  General input information                                                   *
+********************************************************************************
+
+  Species output for all configurations : 
+
+--------------------------------------------------------------------------------
+  Species    Type    Atomic    Atomic    Charge       Radii (Angs)     Library
+                     Number     Mass       (e)     Cova   Ionic  VDW   Symbol
+--------------------------------------------------------------------------------
+    Cs       Core       55     132.91   1.000000   1.670  0.000  2.490          
+    Pb       Core       82     207.20   0.934138   1.540  0.000  2.300          
+    I        Core       53     126.91  -0.644713   1.400  0.000  2.050          
+--------------------------------------------------------------------------------
+
+
+  Lattice summation method               =    Ewald          (3-D)
+                                         =    Parry          (2-D)
+                                         =    Saunders et al (1-D)
+  Accuracy factor for lattice sums       =   12.000
+
+
+  Time limit = Infinity
+
+  Maximum range for interatomic potentials =    100000.000000 Angstroms
+
+  Intermolecular potentials :
+
+--------------------------------------------------------------------------------
+Atom  Types   Potential      Parameter       Value         Units   Cutoffs(Ang)
+  1     2                                                            Min /  Max 
+--------------------------------------------------------------------------------
+Pb   c Pb   c Buckingham    Buckingham A     620144.50    eV        0.000 12.000
+                            Buckingham rho  0.44665349    Ang       
+                            Buckingham C     7927.0405    eV*Ang^6  
+--------------------------------------------------------------------------------
+Cs   c Pb   c Buckingham    Buckingham A     52567.457    eV        0.000 12.000
+                            Buckingham rho  0.42229211    Ang       
+                            Buckingham C     4275.7261    eV*Ang^6  
+--------------------------------------------------------------------------------
+Cs   c Cs   c Buckingham    Buckingham A     289990.13    eV        0.000 12.000
+                            Buckingham rho  0.44319054    Ang       
+                            Buckingham C     7204.4360    eV*Ang^6  
+--------------------------------------------------------------------------------
+I    c Pb   c Buckingham    Buckingham A     520461.94    eV        0.000 12.000
+                            Buckingham rho  0.25294265    Ang       
+                            Buckingham C     6200.9990    eV*Ang^6  
+--------------------------------------------------------------------------------
+I    c I    c Buckingham    Buckingham A     995821.50    eV        0.000 12.000
+                            Buckingham rho  0.15203901    Ang       
+                            Buckingham C     2077.0073    eV*Ang^6  
+--------------------------------------------------------------------------------
+I    c Cs   c Buckingham    Buckingham A     748444.94    eV        0.000 12.000
+                            Buckingham rho  0.48498562    Ang       
+                            Buckingham C     8982.4287    eV*Ang^6  
+--------------------------------------------------------------------------------
+
+********************************************************************************
+*  Output for configuration   1                                                *
+********************************************************************************
+
+
+  Components of energy : 
+
+--------------------------------------------------------------------------------
+  Interatomic potentials     =        1105.44563983 eV    
+  Monopole - monopole (real) =          -2.67600009 eV    
+  Monopole - monopole (recip)=          -8.09546960 eV    
+  Monopole - monopole (total)=         -10.77146969 eV    
+--------------------------------------------------------------------------------
+  Total lattice energy       =        1094.67417014 eV    
+--------------------------------------------------------------------------------
+  Total lattice energy       =          105619.3238 kJ/(mole unit cells)
+--------------------------------------------------------------------------------
+
+  Peak dynamic memory used =       0.52 MB 
+
+
+  Timing analysis for GULP :
+
+--------------------------------------------------------------------------------
+  Task / Subroutine                                          Time (Seconds)
+--------------------------------------------------------------------------------
+  Calculation of real space energy and derivatives                0.0003
+--------------------------------------------------------------------------------
+  Total CPU time                                                  0.0036
+--------------------------------------------------------------------------------
+
+
+  Job Finished at 01:27.33 20th December   2020                               
+
