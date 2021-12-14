@@ -1,0 +1,31 @@
+data_PbI3FA_111
+_audit_creation_date              Tomorrow
+_audit_creation_method            'iGOR'
+_symmetry_space_group_name_H-M    'P1'
+loop_
+_symmetry_equiv_pos_as_xyz
+  x,y,z
+_cell_length_a                    6.1743
+_cell_length_b                    6.0705
+_cell_length_c                    6.1611
+_cell_angle_alpha                 91.4296
+_cell_angle_beta                  93.5498
+_cell_angle_gamma                 90.240876
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+ Pb  Pb          0.48330      0.49844      0.51847  1.0000
+ I   I           0.49074      0.50532      0.02056  1.0000
+ I   I           0.47589      0.99940      0.51851  1.0000
+ I   I           0.98387      0.48705      0.51173  1.0000
+ C1  C           0.01804      0.06137      0.03694  1.0000
+ N1  N           0.88859      0.98423      0.17899  1.0000
+ N1  N           0.04531      0.96753      0.84704  1.0000
+ H   H           0.11030      0.21566      0.08018  1.0000
+ H   H           0.86923      0.07410      0.31806  1.0000
+ H   H           0.78995      0.84661      0.14568  1.0000
+ H   H           0.97864      0.81551      0.79916  1.0000
+ H   H           0.16457      0.02427      0.75284  1.0000

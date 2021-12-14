@@ -1,0 +1,30 @@
+keyword molq
+#
+species 4
+Cs  +1.05200
+Pb  +0.91990
+I   -0.65730
+Br  -0.65730
+#
+buck inter
+Pb Pb 0.0       0.250000 1024.359   0.0 12.0
+Cs Pb 8753.5043 0.418713 1.1082039  0.0 12.0
+Cs Cs 7511.9269 0.043775 227.77208  0.0 12.0
+I  Pb 8955.2901 0.303895 267.49087  0.0 12.0
+I  I  62088.839 0.275171 1022.4065  0.0 12.0
+I  Cs 40322.272 0.330972 0.0        0.0 12.0
+Br Pb 6446.9831 0.300951 330.91084  0.0 12.0
+Br Br 370703.45 0.241959 277.92647  0.0 12.0
+Br Cs 9345.4968 0.333138 117.4985   0.0 12.0
+Br I  151712.05 0.266294 918.44378  0.0 12.0
+#
+nobond Pb  core Pb  core
+nobond Pb  core  I  core
+nobond Pb  core Br  core
+nobond Pb  core Cs  core
+nobond I   core  I  core
+nobond I   core Br  core
+nobond I   core Cs  core
+nobond Br  core Br  core
+nobond Br  core Cs  core
+nobond Cs  core Cs  core
