@@ -409,8 +409,8 @@ module get_structures
    if(ierr/=0)stop
    do i=1,n_files
     read(111,'(a)')line
-    read(line(1:19),*) CIFFiles(i)%obs_energy
-    read(line(20:),'(a)') CIFFiles(i)%filename
+    read(line(1:45),'(a)') CIFFiles(i)%filename
+    read(line(46:),*) CIFFiles(i)%obs_energy
     open(100,file=trim(CIFFiles(i)%filename),status='old',iostat=ierr)
     if(ierr/=0) stop 'CIFFile does not found'
     read_cif: do

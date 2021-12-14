@@ -7,7 +7,7 @@ xxxxxxxxx4  A_buck
 xxxxxxxxx5  rho_buck
 xxxxxxxxx6  C_buck
 ffit?  .true.
-refit? .true.
+refit? .true. binary
 24
 01000110000010011000000000000000 # 8800.00 1
 00111110101110000101000111101100 # .360
