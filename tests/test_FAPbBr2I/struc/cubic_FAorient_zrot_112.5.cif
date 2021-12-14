@@ -1,0 +1,42 @@
+
+#======================================================================
+# CRYSTAL DATA
+#----------------------------------------------------------------------
+data_VESTA_phase_1
+
+_chemical_name_common                  'FaPbBr2I                              '
+_cell_length_a                         6.456200
+_cell_length_b                         5.841800
+_cell_length_c                         6.037700
+_cell_angle_alpha                      90.000000
+_cell_angle_beta                       90.000000
+_cell_angle_gamma                      90.000000
+_cell_volume                           227.716881
+_space_group_name_H-M_alt              'P 1'
+_space_group_IT_number                 1
+
+loop_
+_space_group_symop_operation_xyz
+   'x, y, z'
+
+loop_
+   _atom_site_label
+   _atom_site_occupancy
+   _atom_site_fract_x
+   _atom_site_fract_y
+   _atom_site_fract_z
+   _atom_site_adp_type
+   _atom_site_B_iso_or_equiv
+   _atom_site_type_symbol
+   C1          1.0     0.440950     0.478670     0.500000    Biso  1.000000 C
+   N1          1.0     0.456600     0.702330     0.500000    Biso  1.000000 N
+   N2          1.0     0.595110     0.332750     0.500000    Biso  1.000000 N
+   H1          1.0     0.284880     0.407220     0.500000    Biso  1.000000 H
+   H2          1.0     0.322520     0.793890     0.500000    Biso  1.000000 H
+   H3          1.0     0.593190     0.790090     0.500000    Biso  1.000000 H
+   H4          1.0     0.747850     0.377440     0.500000    Biso  1.000000 H
+   H5          1.0     0.558890     0.163230     0.500000    Biso  1.000000 H
+   Pb1         1.0     0.000000     0.999990     0.000000    Biso  1.000000 Pb
+   I1          1.0     0.500000     0.007350     0.000000    Biso  1.000000 I
+   Br1         1.0     0.000000     0.500460     0.000000    Biso  1.000000 Br
+   Br2         1.0     0.000000     0.973380     0.500000    Biso  1.000000 Br

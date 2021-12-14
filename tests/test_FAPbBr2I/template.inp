@@ -1,0 +1,16 @@
+########### SINGLE POINT ENERGY CALCULATION ########### 
+units      metal
+boundary   p p p
+atom_style full
+#
+pair_style      hybrid lj/cut/coul/long 12.0 buck/coul/long 12.0
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  charmm
+special_bonds   amber   # weight interactions between distant atoms of the molecule 
+read_data    file.dat 
+kspace_style pppm  1.0e-6
+pair_modify  table 0
+thermo_style custom etotal pe ebond eangle edihed eimp epair evdwl ecoul
+run 0
+
