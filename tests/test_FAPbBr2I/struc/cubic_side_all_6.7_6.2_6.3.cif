@@ -1,0 +1,42 @@
+
+#======================================================================
+# CRYSTAL DATA
+#----------------------------------------------------------------------
+data_VESTA_phase_1
+
+_chemical_name_common                  'MAPbI3-cubic-CONTCAR_vicent           '
+_cell_length_a                         6.718880
+_cell_length_b                         6.299650
+_cell_length_c                         6.387370
+_cell_angle_alpha                      90.000000
+_cell_angle_beta                       90.000000
+_cell_angle_gamma                      90.000000
+_cell_volume                           270.355626
+_space_group_name_H-M_alt              'P 1'
+_space_group_IT_number                 1
+
+loop_
+_space_group_symop_operation_xyz
+   'x, y, z'
+
+loop_
+   _atom_site_label
+   _atom_site_occupancy
+   _atom_site_fract_x
+   _atom_site_fract_y
+   _atom_site_fract_z
+   _atom_site_adp_type
+   _atom_site_B_iso_or_equiv
+   _atom_site_type_symbol
+   C1          1.0     0.460520     0.489717     0.486132    Biso  1.000000 C
+   N1          1.0     0.678190     0.489654     0.532631    Biso  1.000000 N
+   H1          1.0     0.439788     0.489659     0.316164    Biso  1.000000 H
+   H2          1.0     0.394113     0.632278     0.555002    Biso  1.000000 H
+   H3          1.0     0.394017     0.347257     0.555114    Biso  1.000000 H
+   H4          1.0     0.747324     0.623388     0.471204    Biso  1.000000 H
+   H5          1.0     0.747252     0.355831     0.471329    Biso  1.000000 H
+   H6          1.0     0.708629     0.489750     0.693168    Biso  1.000000 H
+   Pb1         1.0     0.955745     0.989013     0.003545    Biso  1.000000 Pb
+   I1          1.0     0.404016     0.989674     0.970941    Biso  1.000000 I
+   Br1         1.0     0.896976     0.989681     0.456305    Biso  1.000000 Br
+   Br2         1.0     0.898700     0.490438     0.006582    Biso  1.000000 Br
